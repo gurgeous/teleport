@@ -1,1 +1,6 @@
-require "teleport/version.rb"
+require "teleport/constants"
+require "teleport/version"
+require "teleport/util"
+require "teleport/config"
+require "teleport/install"
+require "teleport/main"
