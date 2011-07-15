@@ -41,6 +41,7 @@ module Teleport
       _create_user
       _apt
       _packages
+      _files
     end
 
     def _root!
@@ -202,6 +203,14 @@ module Teleport
       packages += @server.packages if @server
       install_packages(packages)
     end
+
+    def _files
+      puts Dir.pwd.inspect
+    end
+
+    #
+    # helpers
+    #
 
     def _rewrite(path, &block)
       tmp = "#{path}.tmp"
