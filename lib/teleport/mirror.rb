@@ -4,40 +4,9 @@ module Teleport
   module Mirror
     include Constants
 
-    def _normalize_path(path)
-      case path
-      when /^#{DATA}/
-        # already absolute - do nothing
-      when /^files/
-        path = "#{DATA}/#{path}"
-      else
-        path = "#{DATA}/files/#{path}"        
-      end
-      path
-    end
-    
-    def _path_to_src(path)
-      _normalize_path(path)
-    end
-
-    def _path_to_dst(path)
-      path = _normalize_path(path)
-      if path =~ %r{#{DATA}/files[^/]*(.*)}
-        path = $1
-      end
-      path
-    end
-
-    def _user_for_file(f)
-      f[%r{^/home/([^/]+)}, 1] || "root"      
-    end
-
-    def _mode_for_file(f)
-      case f
-      when %r{sudoers} then 0440
-      when %r{/\.ssh/} then 0400
-      end
-    end
+    #
+    # public API
+    #
     
     def install_file(path)
       path, dst = _path_to_src(path), _path_to_dst(path)
@@ -74,6 +43,43 @@ module Teleport
       end
       
       dirty
+    end
+
+    #
+    # helpers
+    #
+
+    def _normalize_path(path)
+      case path
+      when /^#{DATA}/
+        # already absolute - do nothing
+      when /^files/
+        path = "#{DATA}/#{path}"
+      else
+        path = "#{DATA}/files/#{path}"
+      end
+      path
+    end
+    
+    def _path_to_src(path)
+      _normalize_path(path)
+    end
+
+    def _path_to_dst(path)
+      path = _normalize_path(path)
+      path = path[%r{#{DATA}/files[^/]*(.*)}, 1]
+      path
+    end
+
+    def _user_for_file(f)
+      f[%r{^/home/([^/]+)}, 1] || "root"      
+    end
+
+    def _mode_for_file(f)
+      case f
+      when %r{sudoers} then 0440
+      when %r{/\.ssh/} then 0400
+      end
     end
   end
 end

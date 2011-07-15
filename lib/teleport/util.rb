@@ -161,7 +161,7 @@ module Teleport
       @uids[user] ||= Etc.getpwnam(user).uid
       uid = @uids[user]
       if File.stat(file).uid != uid
-        FileUtils.chown(uid, uid, file, :verbose => verbose?)
+        run "chown #{user}:#{user} '#{file}'"        
       end
     end
 
