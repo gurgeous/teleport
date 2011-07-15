@@ -21,6 +21,8 @@ module Teleport
           usage(0)
         end
       end
+
+      $stderr = $stdout
       
       case cmd
       when :teleport
@@ -85,7 +87,6 @@ module Teleport
     end
 
     def teleport(host)
-      run_verbose!
       sanity!
       assemble_tgz(host)
       ssh_tgz(host)

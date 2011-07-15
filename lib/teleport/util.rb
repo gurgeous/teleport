@@ -217,25 +217,9 @@ module Teleport
     # script helpers
     #
 
-    def root!(home = false)
-      if whoami != "root"
-        exec("sudo #{$0} #{ARGV.join(" ")}")
-      end
-    end
-
-    def isatty!
-      @isatty = $stderr.isatty ? 1 : 0
-    end
-
     def banner(s, color = GREEN)
-      @isatty ||= 1
-      if @isatty == 1
-        s = "#{s} ".ljust(60, " ")      
-        $stderr.write "#{color}[#{Time.new.strftime('%H:%M:%S')}] #{s}#{RESET}\n"
-      else
-        s = "#{s} ".ljust(60, "-")
-        $stderr.write "[#{Time.new.strftime('%H:%M:%S')}] #{s}\n"
-      end
+      s = "#{s} ".ljust(60, " ")      
+      $stderr.write "#{color}[#{Time.new.strftime('%H:%M:%S')}] #{s}#{RESET}\n"
       $stderr.flush
     end
 
