@@ -3,14 +3,14 @@ module Teleport
     RUBIES = ["1.9.2", "REE", "1.8.7"]
     PATH = "teleport.rb"
 
-    attr_accessor :user, :ruby, :roles, :servers, :apt_keys, :packages
+    attr_accessor :user, :ruby, :roles, :servers, :apt, :packages
     
     def initialize
       @user = Util.whoami
       @ruby = RUBIES.first
       @roles = []
       @servers = []
-      @apt_keys = []
+      @apt = []
       @packages = []
       DSL.new(self).instance_eval(File.read(PATH), PATH)
       sanity!
@@ -38,6 +38,21 @@ module Teleport
     # models
     #
 
+    class Role
+      attr_reader :name, :options, :packages
+      
+      def initialize(name, options)
+        raise "role name should be a sym" if !name.is_a?(Symbol)
+        raise "role options should be a hash" if !options.is_a?(Hash)
+        
+        @name, @options, @packages = name, options, []
+        if p = @options.delete(:packages)
+          raise "role :packages should be an array" if !p.is_a?(Array)
+          @packages = p
+        end
+      end
+    end
+
     class Server
       attr_reader :name, :options, :packages
       
@@ -46,9 +61,7 @@ module Teleport
         raise "server options should be a hash" if !options.is_a?(Hash)
         raise "server :role should be a sym" if !options[:role].is_a?(Symbol)
         
-        @name = name
-        @options = options
-        @packages = []
+        @name, @options, @packages = name, options, []
         if p = @options.delete(:packages)
           raise "server :packages should be an array" if !p.is_a?(Array)
           @packages = p
@@ -56,20 +69,13 @@ module Teleport
       end
     end
 
-    class Role
-      attr_reader :name, :options, :packages
-      
-      def initialize(name, options)
-        raise "role name should be a sym" if !name.is_a?(Symbol)
-        raise "role options should be a hash" if !options.is_a?(Hash)
-        
-        @name = name
-        @options = options
-        @packages = []
-        if p = @options.delete(:packages)
-          raise "role :packages should be an array" if !p.is_a?(Array)
-          @packages = p
-        end
+    class Apt
+      attr_reader :line, :options
+
+      def initialize(line, options)
+        raise "apt line should be a string" if !line.is_a?(String)
+        raise "apt options should be a hash" if !options.is_a?(Hash)
+        @line, @options = line, options
       end
     end
 
@@ -92,16 +98,16 @@ module Teleport
       
       def role(name, options = {})
         raise "options should be a hash" if !options.is_a?(Hash)
-        @config.roles << Role.new(name.to_sym, options)
+        @config.roles << Role.new(name, options)
       end
 
       def server(name, options = {})
         raise "options should be a hash" if !options.is_a?(Hash)        
-        @config.servers << Server.new(name.to_s, options)
+        @config.servers << Server.new(name, options)
       end
 
-      def apt_key(key)
-        @config.apt_keys << key
+      def apt(line, options = {})
+        @config.apt << Apt.new(line, options)
       end
 
       def packages(*list)

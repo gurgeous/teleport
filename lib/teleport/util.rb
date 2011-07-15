@@ -108,6 +108,15 @@ module Teleport
       run "rm -rf #{dir} && mkdir -p #{dir}"
     end
 
+    def different?(a, b)
+      !FileUtils.compare_file(a, b)
+    end
+
+    def copy_perms(src, dst)
+      stat = File.stat(src)
+      File.chmod(stat.mode, dst)
+    end
+
     def copy_metadata(src, dst)
       stat = File.stat(src)
       File.chmod(stat.mode, dst)
@@ -130,7 +139,7 @@ module Teleport
     end
 
     def cp_if_necessary(src, dst, owner = nil, mode = nil)
-      if !(File.exists?(dst) && FileUtils.compare_file(src, dst))
+      if !File.exists?(dst) || different?(src, dst)
         cp(src, dst, owner, mode)
         true
       end
@@ -238,7 +247,7 @@ module Teleport
     end
 
     def package_is_installed?(pkg)
-      succeeds?("dpkg-query -f='${Status}' -W #{pkg} | grep 'install ok installed'")    
+      succeeds?("dpkg-query -f='${Status}' -W #{pkg} | grep 'install ok installed' 2> /dev/null")    
     end
 
     def package_if_necessary(pkg)
