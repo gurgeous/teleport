@@ -49,9 +49,9 @@ module Teleport
       rm_and_mkdir(DIR)
       
       # gem
-      run("cp", ["-r", "#{File.dirname(__FILE__)}/../../lib", "#{DIR}/gem"])
+      run("cp", ["-r", "#{File.dirname(__FILE__)}/../../lib", GEM])
       # data
-      run("cp", ["-r", ".", "#{DIR}/data"])
+      run("cp", ["-r", ".", DATA])
       # config.sh
       File.open("#{DIR}/config", "w") do |f|
         f.puts("CONFIG_HOST='#{host}'")        
@@ -97,7 +97,7 @@ module Teleport
     #
 
     def install
-      Dir.chdir("data") do
+      Dir.chdir(DATA) do
         sanity!
       end
       Install.new(@config)

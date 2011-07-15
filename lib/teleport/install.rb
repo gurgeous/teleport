@@ -2,6 +2,7 @@ module Teleport
   class Install
     include Constants    
     include Util
+    include Mirror    
     
     attr_reader :config, :host
     
@@ -20,7 +21,7 @@ module Teleport
     end
 
     def role
-      @role.name
+      @role && @role.name
     end
 
     def install_packages(*list)
@@ -82,7 +83,7 @@ module Teleport
     end
 
     def _ruby
-      banner "ruby and rubygems..."
+      banner "Checking ruby and rubygems..."
       
       # fixup vanilla 1.8.7 install
       ruby_version = `ruby --version`.strip
@@ -205,7 +206,12 @@ module Teleport
     end
 
     def _files
-      puts Dir.pwd.inspect
+      banner "Files..."
+      files = ["files"]
+      files << "files_#{role}" if role
+      files.each do |i|
+        install_dir(i) if File.exists?("#{DATA}/#{i}")
+      end
     end
 
     #
