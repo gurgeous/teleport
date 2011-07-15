@@ -146,6 +146,7 @@ module Teleport
     end
     
     def chown(file, user)
+      user = user.to_s
       # who is the current owner?
       @uids ||= {}
       @uids[user] ||= Etc.getpwnam(user).uid

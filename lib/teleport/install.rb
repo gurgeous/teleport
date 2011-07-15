@@ -7,6 +7,7 @@ module Teleport
     
     def initialize(config)
       @config = config
+      run_verbose!
       _run
     end
 
@@ -18,12 +19,17 @@ module Teleport
       config.user
     end
 
+    def packages(*list)
+      list.flatten.each do |i|
+        package_if_necessary(i)
+      end
+    end
+
     #
     # private API
     #
 
     def _run
-      run_verbose!
       _finish_ruby_install
       _hostname
       _create_user
@@ -33,17 +39,13 @@ module Teleport
       # fixup 1.8.7
       ruby_version = `ruby --version`.strip
       if ruby_version =~ /1.8.7/ && ruby_version !~ /Enterprise Edition/
-        %w(irb libopenssl-ruby libreadline-ruby rdoc ri ruby-dev).each do |i|
-          package_if_necessary(i)
-        end
+        packages(%w(irb libopenssl-ruby libreadline-ruby rdoc ri ruby-dev))
         if fails?("which gem")
           banner "Installing rubygems..."
-          Dir.chdir(DIR) do
-            run "wget http://production.cf.rubygems.org/rubygems/rubygems-1.8.5.tgz"
-            run "tar xfpz rubygems-1.8.5.tgz"
-            Dir.chdir("rubygems-1.8.5") do
-              run "ruby setup.rb"
-            end
+          run "wget http://production.cf.rubygems.org/rubygems/rubygems-1.8.5.tgz"
+          run "tar xfpz rubygems-1.8.5.tgz"
+          Dir.chdir("rubygems-1.8.5") do
+            run "ruby setup.rb"
           end
           ln("/usr/bin/gem1.8", "/usr/bin/gem")
         end
@@ -73,7 +75,7 @@ module Teleport
     def _hostname
       # read DIR/config to get CONFIG_HOST
       config = { }
-      File.readlines("#{DIR}/config").each do |i|
+      File.readlines("config").each do |i|
         if i =~ /CONFIG_([^=]+)='([^']*)'/
           config[$1.downcase.to_sym] = $2
         end
@@ -114,6 +116,32 @@ module Teleport
         end
         chmod("/etc/sudoers.d/teleport", 0440)
       end
+
+      # ssh key, if present
+      # ssh-keygen -t rsa -f ~/.ssh/id_teleport
+      authorized_keys = "/home/#{user}/.ssh/authorized_keys"
+      if !File.exists?(authorized_keys)
+        if File.exists?(PUBKEY)
+          mkdir_if_necessary(File.dirname(authorized_keys), user, 0700)
+          cp(PUBKEY, authorized_keys, user, 0600)
+        end
+      end
     end
   end
 end
+
+
+# user :amd
+# role :master, :packages => %w(d e f)
+# ruby "1.8.7"
+# server "vox", :master, :packages => %w(a b c)
+# apt_key "7F0CEB10"
+# packages %w(a b c)
+
+# create_user
+# apt_sources
+# packages
+# files
+# if role == :app
+#   run "mkdir gub"
+# end

@@ -55,6 +55,13 @@ module Teleport
         f.puts("CONFIG_HOST='#{host}'")        
         f.puts("CONFIG_RUBY='#{@config.ruby}'")
       end
+      # keys
+      ssh_key = "#{ENV["HOME"]}/.ssh/#{PUBKEY}"
+      if File.exists?(ssh_key)
+        run("cp", [ssh_key, DIR])
+      else
+        puts "Could not find #{ssh_key} - skipping."
+      end
       
       Dir.chdir(File.dirname(DIR)) do
         run("tar", ["cfpz", TAR, File.basename(DIR)])
@@ -89,8 +96,9 @@ module Teleport
     #
 
     def install
-      Dir.chdir("data")
-      sanity!
+      Dir.chdir("data") do
+        sanity!
+      end
       Install.new(@config)
     end
     
