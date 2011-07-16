@@ -56,6 +56,7 @@ module Teleport
       File.open("#{DIR}/config", "w") do |f|
         f.puts("CONFIG_HOST='#{host}'")        
         f.puts("CONFIG_RUBY='#{@config.ruby}'")
+        f.puts("CONFIG_RUBYGEMS='#{RUBYGEMS}'")        
       end
       # keys
       ssh_key = "#{ENV["HOME"]}/.ssh/#{PUBKEY}"

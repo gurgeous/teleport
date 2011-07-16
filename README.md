@@ -1,39 +1,20 @@
-teleport
-  Gemfile
-  Rakefile
-  LICENSE
-  README.md
-  teleport.gemspec
-  bin/teleport
-  lib/teleport.rb
-  lib/teleport/main.rb
-  lib/teleport/util.rb
-  lib/teleport/version.rb
-  lib/teleport/setup.sh
+todo
+----
+docs
+tests
+clean vm runs with all flavors of ruby
+install.rb
+switch to scp then ssh, instead of just ssh? that would allow stdin
 
-teleport HOSTNAME
+ruby rdoc irb ri gem
 
-teleport/teleport.rb
-        /run.rb
-        /files/...
-        /files_master/...
 
-teleport.rb        
-  user :amd
-  role :master, :packages => %w(a b c)
-  server "sd1", :master
-  server "sd2", :db
-  apt_key "7F0CEB10"
-  packages %w(a b c)
 
-run.rb
-  create_user
-  apt_sources
-  packages
-  files
-  if role == :app
-    run "mkdir gub"
-  end
+how would you do the following?
+ - iwatch
+ - start services when files are dirty
+ - debconf
 
-teleport new (creates sample directory)
+# ssh-keygen -t rsa -f ~/.ssh/id_teleport
 
+# TODO: install.rb

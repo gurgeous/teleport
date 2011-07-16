@@ -3,6 +3,18 @@
 # bail on errors
 set -eu
 
+
+#
+# constants
+#
+
+if [ $(uname -m) == "x86_64" ]; then
+  PLATFORM=amd64
+else
+  PLATFORM=i386
+fi
+
+
 #
 # functions
 #
@@ -27,17 +39,24 @@ function install_ruby() {
 }
 
 function install_ruby_187() {
-  sudo apt-get -y install ruby
+  sudo apt-get -y install irb libopenssl-ruby libreadline-ruby rdoc ri ruby ruby-dev
+  
+  wget http://production.cf.rubygems.org/rubygems/rubygems-$CONFIG_RUBYGEMS.tgz
+  tar xfpz rubygems-$CONFIG_RUBYGEMS.tgz
+  (cd rubygems-$CONFIG_RUBYGEMS ; ruby setup.rb)
+  ln -s /usr/bin/gem1.8 /usr/bin/gem
 }
 
 function install_ruby_192() {
-  # courtesy of http://threebrothers.org/brendan/blog/ruby-1-9-2-on-ubuntu-11-04/
+  local patch=p180
+  
+  # see http://threebrothers.org/brendan/blog/ruby-1-9-2-on-ubuntu-11-04/
   sudo apt-get install -y bison build-essential checkinstall libffi5 libssl-dev libyaml-dev zlib1g-dev
 
-  wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.2-p180.tar.gz
-  tar xvzf ruby-1.9.2-p180.tar.gz
+  wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.2-$patch.tar.gz
+  tar xvzf ruby-1.9.2-$patch.tar.gz
   
-  cd ruby-1.9.2-p180
+  cd ruby-1.9.2-$patch
   ./configure --prefix=/usr/local \
               --program-suffix=1.9.2 \
               --with-ruby-version=1.9.2 \
@@ -46,11 +65,9 @@ function install_ruby_192() {
   sudo checkinstall -D -y \
                     --fstrans=no \
                     --nodoc \
-                    --pkgname='ruby1.9.2' \
-                    --pkgversion='1.9.2-p180' \
-                    --provides='ruby' \
-                    --requires='libc6,libffi5,libgdbm3,libncurses5,libreadline5,openssl,libyaml-0-2,zlib1g' \
-                    --maintainer=brendan.ribera@gmail.com
+                    --pkgname="ruby1.9.2" \
+                    --pkgversion="1.9.2-$patch" \
+                    --provides="ruby"
   cd ..
 
   sudo update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby1.9.2 500 \
@@ -63,12 +80,7 @@ function install_ruby_192() {
 
 
 function install_ruby_ree() {
-  if [ $(uname -m) == "x86_64" ]; then
-    local platform="amd64"
-  else
-    local platform="i386"
-  fi
-  local ree="ruby-enterprise_1.8.7-2011.03_${platform}_ubuntu10.04.deb"
+  local ree="ruby-enterprise_1.8.7-2011.03_${PLATFORM}_ubuntu10.04.deb"
   wget http://rubyenterpriseedition.googlecode.com/files/$ree
   sudo dpkg -i $ree
 }
@@ -81,8 +93,10 @@ function install_ruby_ree() {
 cd /tmp/_teleported
 source ./config
 
+# do we need to install ruby?
 if ! which ruby > /dev/null ; then
   install_ruby
 fi
 
+# run teleport!
 ruby -I gem -r teleport -e "Teleport::Main.new(:install)"
