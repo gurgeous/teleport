@@ -35,7 +35,6 @@ module Teleport
     #
 
     def _run
-      _root!
       _config
       _gems
       _hostname
@@ -43,18 +42,6 @@ module Teleport
       _apt
       _packages
       _files
-    end
-
-    def _root!
-      # become root if necessary
-      return if whoami == "root"
-      
-      if fails?("sudo -n echo gub")
-        fatal("Please setup sudo for #{user}.")
-      end
-      banner "Becoming root..."
-      $stdout.flush
-      exec("sudo ruby -I gem -r teleport -e \"Teleport::Main.new(:install)\"") 
     end
 
     def _config

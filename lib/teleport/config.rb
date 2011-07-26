@@ -1,7 +1,7 @@
 module Teleport
   class Config
     RUBIES = ["1.9.2", "REE", "1.8.7"]
-    PATH = "teleport.rb"
+    PATH = "Telfile"
 
     attr_accessor :user, :ruby, :roles, :servers, :apt, :packages
     

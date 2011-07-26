@@ -72,15 +72,17 @@ module Teleport
     end
 
     def ssh_tgz(host)
-      banner "Teleporting to #{host}..."
-      cmd = [
-             "cd /tmp",
-             "rm -rf _teleported",
-             "tar xfpz -",
-             "_teleported/gem/teleport/run.sh",
-            ]
       begin
-        run "cat #{TAR} | ssh #{host} '#{cmd.join(" && ")}'"
+        banner "scp #{TAR} #{host}:#{TAR}..."
+        run "scp #{TAR} to #{host}:#{TAR}"
+        
+        banner "ssh to #{host} and run..."
+        cmd = <<EOF
+        cd /tmp && \
+        (sudo -n echo gub > /dev/null 2> /dev/null || (echo `whoami` could not sudo. && exit 1)) && \
+        sudo -s 'rm -rf #{DIR} && tar xfpz #{TAR} && #{DIR}/gem/teleport/run.sh'
+EOF
+        run("ssh", [host, cmd])
       rescue RunError
         fatal("Failed!")
       end
