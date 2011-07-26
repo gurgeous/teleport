@@ -73,8 +73,8 @@ module Teleport
 
     def ssh_tgz(host)
       begin
-        banner "scp #{TAR} #{host}:#{TAR}..."
-        run "scp #{TAR} to #{host}:#{TAR}"
+        banner "scp #{TAR} to #{host}:#{TAR}..."
+        run "scp #{TAR} #{host}:#{TAR}"
         
         banner "ssh to #{host} and run..."
         cmd = <<EOF
