@@ -2,11 +2,11 @@ require "erb"
 require "getoptlong"
 
 module Teleport
+  # The main class for the teleport command line.
   class Main
     include Constants
     include Util    
 
-    DIR = "/tmp/_teleported"
     TAR = "#{DIR}.tgz"
     
     attr_accessor :host, :options
@@ -26,18 +26,19 @@ module Teleport
       
       case cmd
       when :teleport
-        usage(1) if ARGV.empty?
         teleport(ARGV.shift)
       when :install
         install
       end
     end
 
-    #
-    # teleport
-    #
+    def usage(exit_code)
+      puts "Usage: teleport <hostname>"
+      puts "  --help      print this help text"
+      exit(exit_code)
+    end
 
-    def sanity!
+    def read_config
       if !File.exists?(Config::PATH)
         fatal("Sadly, I can't find #{Config::PATH} here. Please create one.")
       end
@@ -90,26 +91,18 @@ EOF
     end
 
     def teleport(host)
-      sanity!
+      read_config
+      usage(1) if !host
       assemble_tgz(host)
       ssh_tgz(host)
     end
 
-    #
-    # install
-    #
-
     def install
       Dir.chdir(DATA) do
-        sanity!
+        read_config
       end
       Install.new(@config).run
     end
     
-    def usage(exit_code)
-      puts "Usage: teleport <hostname>"
-      puts "  --help      print this help text"
-      exit(exit_code)
-    end
   end
 end

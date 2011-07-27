@@ -1,7 +1,13 @@
 #!/bin/bash
 
+#
+# This script runs on the target machine. First it installs ruby if
+# necessary, then it runs teleport.
+#
+
 # bail on errors
 set -eu
+
 
 
 #
@@ -13,6 +19,7 @@ if [ $(uname -m) == "x86_64" ]; then
 else
   PLATFORM=i386
 fi
+
 
 
 #
@@ -77,7 +84,6 @@ function install_ruby_192() {
                            --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.2 \
                            --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.2
 }
-
 
 function install_ruby_ree() {
   local ree="ruby-enterprise_1.8.7-2011.03_${PLATFORM}_ubuntu10.04.deb"

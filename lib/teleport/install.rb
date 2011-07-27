@@ -1,4 +1,5 @@
 module Teleport
+  # Class that performs the install on the target machine.
   class Install
     include Constants    
     include Util
@@ -12,10 +13,15 @@ module Teleport
       run_verbose!
       read_config
 
-      # setup @config
+      # setup @config constants
       Config::DSL.const_set("HOST", @host)
       Config::DSL.const_set("USER", user)
       Config::DSL.const_set("ROLE", @role && @role.name)
+
+      # add mixins
+      @config.dsl.extend(Mirror)      
+      @config.dsl.extend(Util)
+      @config.dsl.run_verbose!
       
       with_callback(:install) do
         gems
@@ -175,10 +181,8 @@ module Teleport
       end
     end
 
-    #
-    # helpers
-    #
-
+    protected
+    
     def user
       @config.user
     end

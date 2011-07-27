@@ -1,15 +1,25 @@
 require "erb"
 
 module Teleport
+  # Helper module for recursively mirroring files from a src to a dst.
   module Mirror
     include Constants
 
+    # Install file from the teleport data directory into the normal
+    # filesystem. Path can use a few different formats:
     #
-    # public API
+    # * #{DATA}/xyz - Full path into the data directory
+    # * files/xyz - Path into the #{DATA}/files directory
+    # * files_role/xyz - Path into a role directory    
+    # * xyz - Assumed to be #{DATA}/files/xyz
     #
-    
+    # Note that the path can be an erb file. For example,
+    # "etc/hosts.erb" will be installed as "etc/hosts".
+    #
+    # Returns true if the file was installed, false if the file had
+    # previously been installed and no change was required.
     def install_file(path)
-      path, dst = _path_to_src(path), _path_to_dst(path)
+      path, dst = path_to_src(path), path_to_dst(path)
 
       # run erb if necessary
       if path =~ /#{DATA}\/(.*)\.erb$/
@@ -22,14 +32,24 @@ module Teleport
         path = tmp
       end
       
-      cp_if_necessary(path, dst, _user_for_file(dst), _mode_for_file(dst))
+      cp_if_necessary(path, dst, user_for_file(dst), mode_for_file(dst))
     end
 
+    # Install directory from the teleport data directory into the
+    # normal filesystem. Path can use a few different formats:
+    #
+    # * #{DATA}/xyz - Full path into the data directory
+    # * files/xyz - Path into the #{DATA}/files directory
+    # * files_role/xyz - Path into a role directory    
+    # * xyz - Assumed to be #{DATA}/files/xyz
+    #
+    # Returns true if the dir was installed, false if the dir had
+    # previously been installed and no change was required.
     def install_dir(path)
       dirty = false
 
-      path, dst = _path_to_src(path), _path_to_dst(path)
-      mkdir_if_necessary(dst, _user_for_file(dst)) if !dst.empty?      
+      path, dst = path_to_src(path), path_to_dst(path)
+      mkdir_if_necessary(dst, user_for_file(dst)) if !dst.empty?      
       
       files = Dir.new(path).to_a.sort
       files.delete_if { |i| i == "." || i == ".." || i =~ /^.#/ }
@@ -45,11 +65,9 @@ module Teleport
       dirty
     end
 
-    #
-    # helpers
-    #
-
-    def _normalize_path(path)
+    protected
+    
+    def normalize_path(path)
       case path
       when /^#{DATA}/
         # already absolute - do nothing
@@ -61,21 +79,21 @@ module Teleport
       path
     end
     
-    def _path_to_src(path)
-      _normalize_path(path)
+    def path_to_src(path)
+      normalize_path(path)
     end
 
-    def _path_to_dst(path)
-      path = _normalize_path(path)
+    def path_to_dst(path)
+      path = normalize_path(path)
       path = path[%r{#{DATA}/files[^/]*(.*)}, 1]
       path
     end
 
-    def _user_for_file(f)
+    def user_for_file(f)
       f[%r{^/home/([^/]+)}, 1] || "root"      
     end
 
-    def _mode_for_file(f)
+    def mode_for_file(f)
       case f
       when %r{sudoers} then 0440
       when %r{/\.ssh/} then 0400
