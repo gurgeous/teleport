@@ -289,6 +289,22 @@ module Teleport
       false
     end
 
+    # Returns true if the pidfile exists and that process id exists as
+    # well.
+    def process_by_pid?(pidfile)
+      begin
+        if File.exists?(pidfile)
+          pid = File.read(pidfile).to_i
+          if pid != 0
+            Process.kill(0, pid)
+            return true
+          end
+        end
+      rescue Errno::ENOENT, Errno::ESRCH
+      end
+      false
+    end
+    
     private
 
     # Returns true if verbosity is turned on.

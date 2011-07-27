@@ -112,6 +112,9 @@ module Teleport
         %w(before after).each do |before_after|
           callback = "#{before_after}_#{op}".to_sym
           define_method(callback) do |&block|
+            if @config.callbacks[callback]
+              raise "Telfile: you already defined the #{callback} callback"
+            end
             @config.callbacks[callback] = block
           end
         end
