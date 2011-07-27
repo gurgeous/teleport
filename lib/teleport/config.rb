@@ -3,7 +3,7 @@ module Teleport
     RUBIES = ["1.9.2", "REE", "1.8.7"]
     PATH = "Telfile"
 
-    attr_accessor :user, :ruby, :roles, :servers, :apt, :packages
+    attr_accessor :user, :ruby, :roles, :servers, :apt, :packages, :callbacks, :dsl
     
     def initialize
       @user = Util.whoami
@@ -12,7 +12,10 @@ module Teleport
       @servers = []
       @apt = []
       @packages = []
-      DSL.new(self).instance_eval(File.read(PATH), PATH)
+      @callbacks = { }
+      
+      @dsl = DSL.new(self)
+      @dsl.instance_eval(File.read(PATH), PATH)
       sanity!
     end
 
@@ -84,8 +87,11 @@ module Teleport
     #
 
     class DSL
+      include Util
+      
       def initialize(config)
         @config = config
+        run_verbose!
       end
       
       def user(v)
@@ -112,6 +118,19 @@ module Teleport
 
       def packages(*list)
         @config.packages += list.flatten
+      end
+
+      #
+      # callbacks
+      #
+
+      %w(install user packages files).each do |op|
+        %w(before after).each do |before_after|
+          callback = "#{before_after}_#{op}".to_sym
+          define_method(callback) do |&block|
+            @config.callbacks[callback] = block
+          end
+        end
       end
     end
   end

@@ -103,7 +103,7 @@ EOF
       Dir.chdir(DATA) do
         sanity!
       end
-      Install.new(@config)
+      Install.new(@config).run
     end
     
     def usage(exit_code)
