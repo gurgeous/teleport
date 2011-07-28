@@ -13,7 +13,7 @@ At the moment Teleport supports **Ubuntu 10.04 LTS with Ruby 1.8.7, 1.9.2, or [R
 1. Install Teleport on your local machine.
 
     ```
-    $ sudo gem install teleport
+    $ sudo gem install teleport --pre
     ```    
     
 1. Create a `Telfile` config file. Here's a simple example. Note that we actually define two machines, `server_app1` and `server_db1`:
