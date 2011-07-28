@@ -69,7 +69,7 @@ module Teleport
         raise "Telfile: apt options must be a hash" if !options.is_a?(Hash)
         @line, @options = line, options
 
-        if k = @options.delete(:key)
+        if k = @options[:key]
           raise "Telfile: apt :key must be an String" if !k.is_a?(String)
         end
       end

@@ -101,7 +101,7 @@ EOF
       Dir.chdir(DATA) do
         read_config
       end
-      Install.new(@config).run
+      Install.new(@config)
     end
     
   end

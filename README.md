@@ -26,7 +26,7 @@ At the moment Teleport supports **Ubuntu 10.04 LTS with Ruby 1.8.7, 1.9.2, or [R
     Put this into `~/teleport/Telfile`:
     
     ``` ruby
-    user :admin
+    user "admin"
     ruby "1.9.2"
     apt "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen", :key => "7F0CAB10"    
     role :app, :packages => [:memcached]
