@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
   s.name        = "teleport"
   s.version     = Teleport::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Adam Doppelt", "John McGrath"]
-  s.email       = ["amd@gurge.com", "john@rglabsinc.com"]
+  s.authors     = ["Adam Doppelt"]
+  s.email       = ["amd@gurge.com"]
   s.homepage    = "http://github.com/rglabs/teleport"  
   s.summary     = %Q{Teleport - opinionated Ubuntu server setup with Ruby.}
   s.description = %Q{Easy Ubuntu server setup via teleportation.}
