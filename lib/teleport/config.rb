@@ -7,8 +7,6 @@ module Teleport
     attr_accessor :user, :ruby, :roles, :servers, :apt, :packages, :callbacks, :dsl
     
     def initialize
-      @user = Util.whoami
-      @ruby = RUBIES.first
       @roles = []
       @servers = []
       @apt = []
@@ -17,6 +15,9 @@ module Teleport
 
       @dsl = DSL.new(self)
       @dsl.instance_eval(File.read(PATH), PATH)
+
+      @user ||= Util.whoami
+      @ruby ||= RUBIES.first
     end
 
     def role(n)
@@ -32,12 +33,12 @@ module Teleport
       attr_reader :name, :options, :packages
       
       def initialize(name, options)
-        raise "Telfile: role name must be a sym" if !name.is_a?(Symbol)
-        raise "Telfile: role options must be a hash" if !options.is_a?(Hash)
+        raise "role name must be a sym" if !name.is_a?(Symbol)
+        raise "role options must be a hash" if !options.is_a?(Hash)
         
         @name, @options, @packages = name, options, []
         if p = @options.delete(:packages)
-          raise "Telfile: role :packages must be an array" if !p.is_a?(Array)
+          raise "role :packages must be an array" if !p.is_a?(Array)
           @packages = p
         end
       end
@@ -48,13 +49,13 @@ module Teleport
       attr_reader :name, :options, :packages
       
       def initialize(name, options)
-        raise "Telfile: server name must be a string" if !name.is_a?(String)
-        raise "Telfile: server options must be a hash" if !options.is_a?(Hash)
-        raise "Telfile: server :role must be a sym" if !options[:role].is_a?(Symbol)
+        raise "server name must be a string" if !name.is_a?(String)
+        raise "server options must be a hash" if !options.is_a?(Hash)
+        raise "server :role must be a sym" if !options[:role].is_a?(Symbol)
         
         @name, @options, @packages = name, options, []
         if p = @options.delete(:packages)
-          raise "Telfile: server :packages must be an array" if !p.is_a?(Array)
+          raise "server :packages must be an array" if !p.is_a?(Array)
           @packages = p
         end
       end
@@ -65,12 +66,12 @@ module Teleport
       attr_reader :line, :options
 
       def initialize(line, options)
-        raise "Telfile: apt line must be a string" if !line.is_a?(String)
-        raise "Telfile: apt options must be a hash" if !options.is_a?(Hash)
+        raise "apt line must be a string" if !line.is_a?(String)
+        raise "apt options must be a hash" if !options.is_a?(Hash)
         @line, @options = line, options
 
         if k = @options[:key]
-          raise "Telfile: apt :key must be an String" if !k.is_a?(String)
+          raise "apt :key must be an String" if !k.is_a?(String)
         end
       end
     end
@@ -82,21 +83,25 @@ module Teleport
       end
 
       def ruby(v)
-        raise "Telfile: ruby must be a string" if !v.is_a?(String)                
-        raise "Telfile: don't recognize ruby #{v.inspect}." if !Config::RUBIES.include?(v)
+        raise "ruby called twice" if @config.ruby
+        raise "ruby must be a string" if !v.is_a?(String)                
+        raise "don't recognize ruby #{v.inspect}." if !Config::RUBIES.include?(v)
         @config.ruby = v
       end
       
       def user(v)
-        raise "Telfile: user must be a string" if !v.is_a?(String)        
+        raise "user called twice" if @config.user
+        raise "user must be a string" if !v.is_a?(String)        
         @config.user = v
       end
 
       def role(name, options = {})
+        raise "role #{name.inspect} defined twice" if @config.roles.any? { |i| i.name == name }
         @config.roles << Role.new(name, options)
       end
 
       def server(name, options = {})
+        raise "server #{name.inspect} defined twice" if @config.servers.any? { |i| i.name == name }
         @config.servers << Server.new(name, options)
       end
 
@@ -113,7 +118,7 @@ module Teleport
           callback = "#{before_after}_#{op}".to_sym
           define_method(callback) do |&block|
             if @config.callbacks[callback]
-              raise "Telfile: you already defined the #{callback} callback"
+              raise "you already defined the #{callback} callback"
             end
             @config.callbacks[callback] = block
           end

@@ -76,14 +76,16 @@ module Teleport
       begin
         banner "scp #{TAR} to #{host}:#{TAR}..."
         run "scp #{TAR} #{host}:#{TAR}"
-        
+
+        cmd = [
+               "cd /tmp",
+               "(sudo -n echo gub > /dev/null 2> /dev/null || (echo `whoami` could not sudo. && exit 1))",
+               "sudo rm -rf #{DIR}",
+               "sudo tar xfpz #{TAR}",
+               "sudo #{DIR}/gem/teleport/run.sh"
+              ]
         banner "ssh to #{host} and run..."
-        cmd = <<EOF
-        cd /tmp && \
-        (sudo -n echo gub > /dev/null 2> /dev/null || (echo `whoami` could not sudo. && exit 1)) && \
-        sudo -s 'rm -rf #{DIR} && tar xfpz #{TAR} && #{DIR}/gem/teleport/run.sh'
-EOF
-        run("ssh", [host, cmd])
+        run("ssh", [host, cmd.join(" && ")])
       rescue RunError
         fatal("Failed!")
       end

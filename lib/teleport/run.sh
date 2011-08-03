@@ -11,37 +11,30 @@ set -eu
 
 
 #
-# constants
-#
-
-if [ $(uname -m) == "x86_64" ]; then
-  PLATFORM=amd64
-else
-  PLATFORM=i386
-fi
-
-
-
-#
 # functions
 #
 
 function banner() {
-  printf '\e[1;37;43m[%s] %-60s\e[0m\n' `date '+%H:%M:%S'` "run.sh: $1"
+  printf '\e[1;37;43m[%s] %-72s\e[0m\n' `date '+%H:%M:%S'` "run.sh: $1"
+}
+
+function fatal() {
+  printf '\e[1;37;41m[%s] %-72s\e[0m\n' `date '+%H:%M:%S'` "run.sh: error - $1"
+  exit 1
 }
 
 function install_ruby() {
   banner "apt-get update / upgrade..."
   sudo apt-get update
   sudo apt-get -y upgrade
-  sudo apt-get install -y wget libreadline5
+  sudo apt-get install -y wget libreadline5-dev
   
   banner "installing Ruby $CONFIG_RUBY..."
   case $CONFIG_RUBY in
     1.8.7 ) install_ruby_187 ;;
     1.9.2 ) install_ruby_192 ;;
     REE )   install_ruby_ree ;;
-	* )     echo "error: unknown ruby ($CONFIG_RUBY)"; exit 99 ;;
+	* )     fatal "unknown ruby ($CONFIG_RUBY)" ;;
   esac
 }
 
@@ -86,7 +79,7 @@ function install_ruby_192() {
 }
 
 function install_ruby_ree() {
-  local ree="ruby-enterprise_1.8.7-2011.03_${PLATFORM}_ubuntu10.04.deb"
+  local ree="ruby-enterprise_1.8.7-2011.03_${ARCH}_ubuntu10.04.deb"
   wget http://rubyenterpriseedition.googlecode.com/files/$ree
   sudo dpkg -i $ree
 }
@@ -96,6 +89,28 @@ function install_ruby_ree() {
 # main
 #
 
+# are we on Ubuntu?
+if ! uname -a | grep -q Ubuntu ; then
+  fatal "Teleport only works with Ubuntu"
+fi
+
+# which version?
+. /etc/lsb-release
+case $($DISTRIB_RELEASE) in
+  10.* ) ;; # nop
+  11.04) ;; # nop
+  *)
+    banner "warning - Ubuntu $DISTRIB_RELEASE hasn't been tested with Teleport yet"
+esac
+
+# which architecture?
+if [ $(uname -m) == "x86_64" ] ; then
+  ARCH=amd64
+else
+  ARCH=i386
+fi
+
+# read our config
 cd /tmp/_teleported
 source ./config
 
