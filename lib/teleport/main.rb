@@ -10,8 +10,8 @@ module Teleport
     TAR = "#{DIR}.tgz"
     
     attr_accessor :host, :options
-    
-    def initialize(cmd = :teleport)
+
+    def run(cmd = :teleport)
       opts = GetoptLong.new(
                             ["--help", "-h", GetoptLong::NO_ARGUMENT]
                             )
@@ -105,6 +105,5 @@ module Teleport
       end
       Install.new(@config)
     end
-    
   end
 end
