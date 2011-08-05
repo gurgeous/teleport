@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "teleport"
 
+  s.add_development_dependency("awesome_print")
   s.add_development_dependency("rdoc", ["~> 3.9"])  
   s.add_development_dependency("rspec", ["~> 2.6"])
   

@@ -1,11 +1,9 @@
 require "spec_helper"
 
 describe Teleport::Config do
-  include WithDir
-  
   context "with a blank Telfile" do
-    with_dir("#{TELDIRS}/blank")
-  
+    inside_dir("#{TELDIRS}/blank")
+
     let(:config) do
       Teleport::Config.new
     end
@@ -18,7 +16,7 @@ describe Teleport::Config do
   end
 
   context "with a simple Telfile" do
-    with_dir("#{TELDIRS}/simple")
+    inside_dir("#{TELDIRS}/simple")
     
     let(:config) do
       Teleport::Config.new
