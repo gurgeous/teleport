@@ -4,8 +4,9 @@ $LOAD_PATH << "#{File.dirname(__FILE__)}/../lib"
 $LOAD_PATH << File.dirname(__FILE__)
 $LOAD_PATH << SUPPORT
 
-require "teleport"
+require "awesome_print"
 require "rspec"
+require "teleport"
 
 Dir["#{SUPPORT}/*.rb"].each { |i| require File.basename(i) }
 

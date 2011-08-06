@@ -120,4 +120,4 @@ if ! which ruby > /dev/null ; then
 fi
 
 # run teleport!
-ruby -I gem -r teleport -e "Teleport::Main.new.run(:install)"
+ruby -I gem -r teleport -e "Teleport::Main.new(:install)"

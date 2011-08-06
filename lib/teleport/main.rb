@@ -11,7 +11,7 @@ module Teleport
     
     attr_accessor :host, :options
 
-    def run(cmd = :teleport)
+    def initialize(cmd = :teleport)
       opts = GetoptLong.new(
                             ["--help", "-h", GetoptLong::NO_ARGUMENT]
                             )
@@ -23,7 +23,7 @@ module Teleport
       end
 
       $stderr = $stdout
-      
+
       case cmd
       when :teleport
         teleport(ARGV.shift)
@@ -75,7 +75,12 @@ module Teleport
     def ssh_tgz(host)
       begin
         banner "scp #{TAR} to #{host}:#{TAR}..."
-        run "scp #{TAR} #{host}:#{TAR}"
+
+        args = []
+        args += @config.ssh_options if @config.ssh_options        
+        args << TAR
+        args << "#{host}:#{TAR}"
+        run("scp", args)
 
         cmd = [
                "cd /tmp",
@@ -85,7 +90,12 @@ module Teleport
                "sudo #{DIR}/gem/teleport/run.sh"
               ]
         banner "ssh to #{host} and run..."
-        run("ssh", [host, cmd.join(" && ")])
+
+        args = []
+        args += @config.ssh_options if @config.ssh_options
+        args << host
+        args << cmd.join(" && ")
+        run("ssh", args)
       rescue RunError
         fatal("Failed!")
       end

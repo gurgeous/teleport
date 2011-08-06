@@ -1,3 +1,5 @@
+require "AWS"
+
 # spin up a fresh ec2 instance
 module Support
   module Ec2
@@ -7,12 +9,10 @@ module Support
     KEYPAIR = "teleport"
     GROUP = "teleport"
 
-    AMI = AMI_10_04
-
-    DESCRIBE_COLS = %w(type id ami nil nil status key nil nil size started zone nil nil nil nil ip ip_priv).map { |i| i.to_sym if i != "nil" }
+    AMI = "ami-#{AMI_10_04}"
 
     def self.configured?
-      ENV["TELEPORT_EC2"]
+      ENV["TELEPORT_ACCESS_KEY_ID"] && ENV["TELEPORT_SECRET_ACCESS_KEY"] && ENV["TELEPORT_SSH_KEY"]
     end
 
     def self.message
@@ -20,12 +20,9 @@ module Support
 ------------------------------------------------------------------------
 If you want to test against EC2, do the following:
 
-1. Create an ec2_teleport directory somewhere
-2. Copy your private key and cert to <ec2_teleport>/pk.pem and
-   <ec2_teleport>/cert.pem.
-3. Setup a "teleport" keypair on EC2.
-4. Set the TELEPORT_EC2 environment variable to point to your
-   <ec2_teleport> directory.
+1. Create a "teleport" keypair on EC2.
+2. Set the TELEPORT_ACCESS_KEY_ID, TELEPORT_SECRET_ACCESS_KEY and
+   TELEPORT_SSH_KEY environment variables.
 
 End-to-end tests that rely on EC2 will be skipped in the meantime.
 ------------------------------------------------------------------------
@@ -38,98 +35,82 @@ EOF
 
     def ec2
       before do
-        ENV["TELEPORT_IP"] = @ec2 = Instance::start
+        if !ENV["TELEPORT_IP"]
+          @ec2 = Ec2Controller.new
+          ENV["TELEPORT_IP"] = @ec2.start
+        else
+          @ec2 = nil
+        end
       end
       after do
-        Instance::stop
+        @ec2.stop if @ec2
       end
     end
 
     #
-    # this class does all the work
+    # this controller class does all the work
     # 
 
-    module Instance
-      extend self
+    class Ec2Controller
+      def initialize
+        raise "not configured" if !Support::Ec2::configured?
+        @ec2 = AWS::EC2::Base.new(:access_key_id => ENV["TELEPORT_ACCESS_KEY_ID"], :secret_access_key => ENV["TELEPORT_SECRET_ACCESS_KEY"])
+      end
       
       def start
-        raise "not configured" if !Support::Ec2::configured?
-
-        ENV["EC2_PRIVATE_KEY"] = "#{ENV["TELEPORT_EC2"]}/pk.pem"
-        ENV["EC2_CERT"]        = "#{ENV["TELEPORT_EC2"]}/cert.pem"
-        
         # stop existing instances
         stop
 
         puts "Running new ec2 instance..."
-        
-        # setup security group
-        run_allow_failure "ec2-add-group #{GROUP} -d teleport"
-        run_allow_failure "ec2-authorize #{GROUP} -p 22"
+        # setup security group and allow ssh
+        begin
+          @ec2.create_security_group(:group_name => GROUP, :group_description => GROUP)
+        rescue AWS::InvalidGroupDuplicate
+          # ignore
+        end
+        @ec2.authorize_security_group_ingress(:group_name => GROUP, :ip_protocol => "tcp", :from_port => 22, :to_port => 22)        
 
         # create the instance
-        run "ec2-run-instances ami-#{AMI} --instance-type m1.large --group #{GROUP} --key #{KEYPAIR}"
+        @ec2.run_instances(:image_id => AMI, :instance_type => "m1.large", :key_name => KEYPAIR, :security_group => GROUP)
 
         # wait for the new instance to start
         puts "Waiting for ec2 instance to start..."
         while true
           sleep 3
           instance = describe_instances.first
-          puts "  #{instance[:id]}: #{instance[:status]}"
-          break if instance[:status] == "running"
+          status = instance["instanceState"]["name"]
+          puts "  #{instance["instanceId"]}: #{status}"
+          break if status == "running"
         end
 
         # return the ip address
-        instance[:ip]
+        ip = instance["ipAddress"]
+        puts "  #{instance["instanceId"]}: #{ip}"
+        sleep 5 # give ssh a chance to start
+        ip
       end
 
       def stop
-        puts "Terminating existing ec2 instances..."      
-        instances = describe_instances
-        terminate = instances.map { |i| i[:id] }
-        if !terminate.empty?
-          puts "  #{terminate.join(" ")}"
-          run "ec2-terminate-instances #{terminate.join(" ")}"
+        puts "Terminating existing ec2 instances..."
+        ids = describe_instances.map { |i| i["instanceId"] }
+        if !ids.empty?
+          puts "  terminate: #{ids.join(" ")}"
+          @ec2.terminate_instances(:instance_id => ids)
         end
       end
 
       protected
 
-      #
-      # ec2 commands
-      #
-      
       def describe_instances
-        lines = run("ec2-describe-instances").split("\n")
-        lines = lines.map do |line|
-          map = { }
-          line = line.split("\t")
-          DESCRIBE_COLS.each_with_index do |key, index|
-            map[key] = line[index] if key
-          end
-          map
+        list = []
+        hash = @ec2.describe_instances
+        if hash = hash["reservationSet"]
+          list = hash["item"].map { |i| i["instancesSet"]["item"] }.flatten
         end
-
         # cull stuff we don't care about
-        lines = lines.select { |i| i[:type] == "INSTANCE" }
-        lines = lines.select { |i| i[:key] == KEYPAIR }
-        lines = lines.select { |i| i[:status] !~ /terminated|shutting-down/ }
-        lines
-      end
-
-      def run(command)
-        result = `#{command}`
-        if $? != 0
-          if $?.termsig == Signal.list["INT"]
-            raise "#{command} interrupted"
-          end
-          raise "#{command} failed : #{$?.to_i / 256}"
-        end
-        result
-      end
-
-      def run_allow_failure(command)
-        `#{command} > /dev/null 2> /dev/null`      
+        list = list.select { |i| i["keyName"] == KEYPAIR }
+        list = list.select { |i| i["instanceState"]["name"] !~ /terminated|shutting-down/ }
+        list
       end
     end
   end

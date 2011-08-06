@@ -4,7 +4,7 @@ module Teleport
     RUBIES = ["1.9.2", "REE", "1.8.7"]
     PATH = "Telfile"
 
-    attr_accessor :user, :ruby, :roles, :servers, :apt, :packages, :callbacks, :dsl
+    attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :callbacks, :dsl
     
     def initialize
       @roles = []
@@ -93,6 +93,12 @@ module Teleport
         raise "user called twice" if @config.user
         raise "user must be a string" if !v.is_a?(String)        
         @config.user = v
+      end
+
+      def ssh_options(v)
+        raise "ssh_options called twice" if @config.ssh_options
+        raise "ssh_options must be an Array" if !v.is_a?(Array)        
+        @config.ssh_options = v
       end
 
       def role(name, options = {})
