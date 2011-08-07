@@ -1,5 +1,4 @@
-require "erb"
-require "getoptlong"
+require "optparse"
 
 module Teleport
   # The main class for the teleport command line.
@@ -9,51 +8,67 @@ module Teleport
 
     TAR = "#{DIR}.tgz"
     
-    attr_accessor :host, :options
-
     def initialize(cmd = :teleport)
-      @options = { }
-      
-      opts = GetoptLong.new(
-                            ["--help", "-h", GetoptLong::NO_ARGUMENT],
-                            ["--file", "-f", GetoptLong::REQUIRED_ARGUMENT]
-                            )
-      opts.each do |opt, arg|
-        case opt
-        when "--help"
-          usage(0)
-        when "--file"
-          @options[:file] = arg
-        end
-      end
-
-      @options[:cmd] = cmd
-      @options[:file] ||= "Telfile"
-
       $stderr = $stdout
-
+      cli(cmd)
+      
       case @options[:cmd]
       when :teleport
-        teleport(ARGV.shift)
+        teleport
       when :install
         install
       end
     end
+    
+    # Parse ARGV.
+    def cli(cmd)
+      @options = { }
+      @options[:cmd] = cmd
+      @options[:file] = "Telfile"
 
-    def usage(exit_code)
-      puts "Usage: teleport <hostname>"
-      puts "  --help      print this help text"
-      exit(exit_code)
+      opt = OptionParser.new do |o|
+        o.banner = "Usage: teleport <hostname>"
+        o.on("-f", "--file FILE", "use this file instead of Telfile") do |f|
+          @options[:file] = f
+        end
+        o.on_tail("-h", "--help", "print this help text") do
+          puts opt
+          exit(0)
+        end
+      end
+      begin
+        opt.parse!
+      rescue OptionParser::InvalidOption, OptionParser::MissingArgument
+        puts $!
+        puts opt
+        exit(1)
+      end
+
+      if @options[:cmd] == :teleport
+        # print this error message early, to give the user a hint
+        # instead of complaining about command line arguments
+        look_for_config!
+        if !(@options[:host] = ARGV.shift)
+          puts opt
+          exit(1)
+        end
+      end
     end
 
-    def read_config
+    def look_for_config!
       if !File.exists?(@options[:file])
         fatal("Sadly, I can't find #{@options[:file]} here. Please create one.")
       end
+    end
+
+    # Read Telfile
+    def read_config
+      look_for_config!
       @config = Config.new(@options[:file])
     end
 
-    def assemble_tgz(host)
+    # Assemble the the tgz before we teleport to the host
+    def assemble_tgz
       banner "Assembling #{TAR}..."
       rm_and_mkdir(DIR)
       
@@ -67,7 +82,7 @@ module Teleport
       run("cp", ["-r", ".", DATA])
       # config.sh
       File.open("#{DIR}/config", "w") do |f|
-        f.puts("CONFIG_HOST='#{host}'")        
+        f.puts("CONFIG_HOST='#{@options[:host]}'")        
         f.puts("CONFIG_RUBY='#{@config.ruby}'")
         f.puts("CONFIG_RUBYGEMS='#{RUBYGEMS}'")        
       end
@@ -75,8 +90,6 @@ module Teleport
       ssh_key = "#{ENV["HOME"]}/.ssh/#{PUBKEY}"
       if File.exists?(ssh_key)
         run("cp", [ssh_key, DIR])
-      else
-        puts "Could not find #{ssh_key} - skipping."
       end
       
       Dir.chdir(File.dirname(DIR)) do
@@ -84,14 +97,15 @@ module Teleport
       end
     end
 
-    def ssh_tgz(host)
+    # Copy the tgz to the host, then run there.
+    def ssh_tgz
       begin
-        banner "scp #{TAR} to #{host}:#{TAR}..."
+        banner "scp #{TAR} to #{@options[:host]}:#{TAR}..."
 
         args = []
         args += @config.ssh_options if @config.ssh_options        
         args << TAR
-        args << "#{host}:#{TAR}"
+        args << "#{@options[:host]}:#{TAR}"
         run("scp", args)
 
         cmd = [
@@ -101,11 +115,11 @@ module Teleport
                "sudo tar xfpz #{TAR}",
                "sudo #{DIR}/gem/teleport/run.sh"
               ]
-        banner "ssh to #{host} and run..."
+        banner "ssh to #{@options[:host]} and run..."
 
         args = []
         args += @config.ssh_options if @config.ssh_options
-        args << host
+        args << @options[:host]
         args << cmd.join(" && ")
         run("ssh", args)
       rescue RunError
@@ -114,13 +128,14 @@ module Teleport
       banner "Success!"
     end
 
-    def teleport(host)
+    # Teleport to the host.
+    def teleport
       read_config
-      usage(1) if !host
-      assemble_tgz(host)
-      ssh_tgz(host)
+      assemble_tgz
+      ssh_tgz
     end
 
+    # We're running on the host - install!
     def install
       Dir.chdir(DATA) do
         read_config

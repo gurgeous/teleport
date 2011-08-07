@@ -36,7 +36,8 @@ EOF
     def ec2
       before do
         if !ENV["TELEPORT_IP"]
-          @ec2 = Ec2Controller.new
+          @ec2 = Controller.new
+          @ec2.stop
           ENV["TELEPORT_IP"] = @ec2.start
         else
           @ec2 = nil
@@ -51,16 +52,13 @@ EOF
     # this controller class does all the work
     # 
 
-    class Ec2Controller
+    class Controller
       def initialize
         raise "not configured" if !Support::Ec2::configured?
         @ec2 = AWS::EC2::Base.new(:access_key_id => ENV["TELEPORT_ACCESS_KEY_ID"], :secret_access_key => ENV["TELEPORT_SECRET_ACCESS_KEY"])
       end
       
       def start
-        # stop existing instances
-        stop
-
         puts "Running new ec2 instance..."
         # setup security group and allow ssh
         begin
@@ -98,8 +96,6 @@ EOF
           @ec2.terminate_instances(:instance_id => ids)
         end
       end
-
-      protected
 
       def describe_instances
         list = []

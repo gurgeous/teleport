@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Teleport::Config do
   context "with a blank Telfile" do
-    inside_dir("#{TELDIRS}/blank")
+    telfile("")
 
     let(:config) do
       Teleport::Config.new
@@ -16,7 +16,25 @@ describe Teleport::Config do
   end
 
   context "with a simple Telfile" do
-    inside_dir("#{TELDIRS}/simple")
+    telfile(<<EOF)
+user "somebody"
+ruby "1.8.7"
+
+role :master, :packages => %w(nginx)
+role :slave, :packages => %w(memcached)
+server "one", :role => :master, :packages => %w(strace)
+server "two", :role => :slave, :packages => %w(telnet)
+packages %w(atop)
+apt "blah blah blah", :key => "123"
+
+before_install do
+  puts "before_install running"
+end
+
+after_install do
+  puts "after_install running"
+end
+EOF
     
     let(:config) do
       Teleport::Config.new

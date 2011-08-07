@@ -37,6 +37,10 @@ RSpec::Core::RakeTask.new(:spec) do |spec|
   spec.pattern = "spec/**/*_spec.rb"
 end
 
+RSpec::Core::RakeTask.new("spec:unit") do |spec|
+  spec.pattern = "spec/unit/**/*_spec.rb"
+end
+
 #
 # rdoc
 #
