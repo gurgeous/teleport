@@ -1,0 +1,16 @@
+user "gub"
+ruby "1.8.7"
+ssh_options ["-o", "User=ubuntu", "-o", "StrictHostKeyChecking=no", "-o", "IdentityFile=<%= ENV["TELEPORT_SSH_KEY"] %>"]
+
+role :master, :packages => %w(nginx)
+server "<%= ENV["TELEPORT_IP"] %>", :role => :master, :packages => %w(strace)
+packages %w(atop)
+
+before_install do
+  puts "BEFORE_INSTALL"
+end
+
+after_install do
+  puts "AFTER_INSTALL"
+  run "touch /tmp/gub.txt"
+end

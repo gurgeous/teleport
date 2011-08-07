@@ -24,6 +24,6 @@ module ExitCodeMatchers
   end  
 end
 
-RSpec::Runner.configure do |config|
+RSpec.configure do |config|
   config.include(ExitCodeMatchers)
 end

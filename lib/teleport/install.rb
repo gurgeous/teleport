@@ -88,7 +88,13 @@ module Teleport
     end
 
     def _hostname
-      banner "Hostname..."      
+      banner "Hostname..."
+
+      # ipv4?
+      return if @host =~ /^\d+(\.\d+){3}$/
+      # ipv6?
+      return if @host =~ /:/
+      
       old_hostname = `hostname`.strip
       return if old_hostname == @host
       

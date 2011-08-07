@@ -12,19 +12,27 @@ module Teleport
     attr_accessor :host, :options
 
     def initialize(cmd = :teleport)
+      @options = { }
+      
       opts = GetoptLong.new(
-                            ["--help", "-h", GetoptLong::NO_ARGUMENT]
+                            ["--help", "-h", GetoptLong::NO_ARGUMENT],
+                            ["--file", "-f", GetoptLong::REQUIRED_ARGUMENT]
                             )
       opts.each do |opt, arg|
         case opt
         when "--help"
           usage(0)
+        when "--file"
+          @options[:file] = arg
         end
       end
 
+      @options[:cmd] = cmd
+      @options[:file] ||= "Telfile"
+
       $stderr = $stdout
 
-      case cmd
+      case @options[:cmd]
       when :teleport
         teleport(ARGV.shift)
       when :install
@@ -39,10 +47,10 @@ module Teleport
     end
 
     def read_config
-      if !File.exists?(Config::PATH)
-        fatal("Sadly, I can't find #{Config::PATH} here. Please create one.")
+      if !File.exists?(@options[:file])
+        fatal("Sadly, I can't find #{@options[:file]} here. Please create one.")
       end
-      @config = Config.new
+      @config = Config.new(@options[:file])
     end
 
     def assemble_tgz(host)
@@ -51,6 +59,10 @@ module Teleport
       
       # gem
       run("cp", ["-r", "#{File.dirname(__FILE__)}/../../lib", GEM])
+      # Telfile, if necessary
+      if @options[:file] != "Telfile"
+        run("cp", [@options[:file], "Telfile"])
+      end
       # data
       run("cp", ["-r", ".", DATA])
       # config.sh

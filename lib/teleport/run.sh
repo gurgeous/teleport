@@ -96,9 +96,9 @@ fi
 
 # which version?
 . /etc/lsb-release
-case $($DISTRIB_RELEASE) in
-  10.* ) ;; # nop
-  11.04) ;; # nop
+case $DISTRIB_RELEASE in
+  10.*  ) ;; # nop
+  11.04 ) ;; # nop
   *)
     banner "warning - Ubuntu $DISTRIB_RELEASE hasn't been tested with Teleport yet"
 esac

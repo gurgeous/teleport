@@ -2,11 +2,10 @@ module Teleport
   # This class parses Telfile, and includes DSL and the models.
   class Config
     RUBIES = ["1.9.2", "REE", "1.8.7"]
-    PATH = "Telfile"
 
     attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :callbacks, :dsl
     
-    def initialize
+    def initialize(file = "Telfile")
       @roles = []
       @servers = []
       @apt = []
@@ -14,7 +13,7 @@ module Teleport
       @callbacks = { }
 
       @dsl = DSL.new(self)
-      @dsl.instance_eval(File.read(PATH), PATH)
+      @dsl.instance_eval(File.read(file), file)
 
       @user ||= Util.whoami
       @ruby ||= RUBIES.first
