@@ -34,20 +34,18 @@ EOF
     #
 
     def ec2
+      controller = nil
       before(:all) do
         if ENV["TELEPORT_IP"]
-          @ip_address = ENV["TELEPORT_IP"]
+          $ec2_ip_address = ENV["TELEPORT_IP"]
         else
-          @ec2_controller = Controller.new
-          @ec2_controller.stop
-          @ip_address = @ec2_controller.start
+          controller = Controller.new
+          controller.stop
+          $ec2_ip_address = controller.start
         end
-        puts "EC2: #{@ec2_controller.inspect} #{@ip_address.inspect}"
       end
       after(:all) do
-        if !ENV["TELEPORT_IP"]
-          @ec2_controller.stop
-        end
+        controller.stop if controller
       end
     end
 

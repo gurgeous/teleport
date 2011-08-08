@@ -16,7 +16,8 @@ describe Teleport::Config do
   end
 
   context "with a simple Telfile" do
-    telfile(<<EOF)
+    telfile do
+      <<EOF
 user "somebody"
 ruby "1.8.7"
 
@@ -35,6 +36,7 @@ after_install do
   puts "after_install running"
 end
 EOF
+      end
     
     let(:config) do
       Teleport::Config.new

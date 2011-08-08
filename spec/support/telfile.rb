@@ -2,22 +2,23 @@
 module Support
   module Telfile
     TMP = "/tmp/teleport_spec"
-    
-    def telfile(telfile_contents)
+
+    def telfile(contents = nil, &block)
+      pwd = nil
       before(:all) do
-        puts "TELFILE: #{self}"
-        puts @ip_address.inspect
-        @pwd = Dir.pwd
+        pwd = Dir.pwd
         `rm -rf #{TMP} && mkdir -p #{TMP}`
         Dir.chdir(TMP)
         File.open("Telfile", "w") do |f|
-          f.puts(telfile_contents)
-          puts "WROTE #{telfile_contents}"
+          if block
+            contents = block.call
+          end
+          f.puts(contents)
         end
       end
       
       after(:all) do
-        Dir.chdir(@pwd)
+        Dir.chdir(pwd)
       end
     end
   end
