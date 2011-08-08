@@ -34,17 +34,20 @@ EOF
     #
 
     def ec2
-      before do
-        if !ENV["TELEPORT_IP"]
-          @ec2 = Controller.new
-          @ec2.stop
-          ENV["TELEPORT_IP"] = @ec2.start
+      before(:all) do
+        if ENV["TELEPORT_IP"]
+          @ip_address = ENV["TELEPORT_IP"]
         else
-          @ec2 = nil
+          @ec2_controller = Controller.new
+          @ec2_controller.stop
+          @ip_address = @ec2_controller.start
         end
+        puts "EC2: #{@ec2_controller.inspect} #{@ip_address.inspect}"
       end
-      after do
-        @ec2.stop if @ec2
+      after(:all) do
+        if !ENV["TELEPORT_IP"]
+          @ec2_controller.stop
+        end
       end
     end
 
@@ -84,7 +87,8 @@ EOF
         # return the ip address
         ip = instance["ipAddress"]
         puts "  #{instance["instanceId"]}: #{ip}"
-        sleep 5 # give ssh a chance to start
+        puts "  sleeping to give ssh a chance to start..."
+        sleep 10
         ip
       end
 

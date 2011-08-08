@@ -51,14 +51,14 @@ module Teleport
       # do we have a server object?
       @server = @config.server(@host)
       if !@server && !@config.servers.empty?
-        fatal "Hm. I couldn't find server #{@host.inspect} in teleport.rb."
+        fatal "Hm. I couldn't find server #{@host.inspect} in Telfile."
       end
 
       @role = nil
       if @server && (role_name = @server.options[:role])
         @role = @config.role(role_name)
         if !@role
-          fatal "Hm. I couldn't find role #{role_name.inspect} in teleport.rb."
+          fatal "Hm. I couldn't find role #{role_name.inspect} in Telfile."
         end
       end
     end
