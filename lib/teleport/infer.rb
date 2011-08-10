@@ -220,6 +220,7 @@ module Teleport
           files << i if new_sum != old_sum
         end
       end
+      files = files.sort
 
       if !files.empty?
         append
@@ -227,9 +228,7 @@ module Teleport
         append "# Also, I think these should be included in files/"
         append "#" * 72
         append
-        files.sort.each do |i|
-          append "# #{i}"
-        end
+        files.each { |i| append "# #{i}" }
         append
         append "# You can do that with this magical command:"
         append "#"
