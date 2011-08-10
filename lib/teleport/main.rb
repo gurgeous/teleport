@@ -9,14 +9,17 @@ module Teleport
     TAR = "#{DIR}.tgz"
     
     def initialize(cmd = :teleport)
-      $stderr = $stdout
       cli(cmd)
       
       case @options[:cmd]
       when :teleport
+        $stderr = $stdout
         teleport
       when :install
+        $stderr = $stdout
         install
+      when :infer
+        infer
       end
     end
     
@@ -30,6 +33,9 @@ module Teleport
         o.banner = "Usage: teleport <hostname>"
         o.on("-f", "--file FILE", "use this file instead of Telfile") do |f|
           @options[:file] = f
+        end
+        o.on("-i", "--infer", "infer a new Telfile from YOUR machine") do |f|
+          @options[:cmd] = :infer
         end
         o.on_tail("-h", "--help", "print this help text") do
           puts opt
@@ -47,23 +53,19 @@ module Teleport
       if @options[:cmd] == :teleport
         # print this error message early, to give the user a hint
         # instead of complaining about command line arguments
-        look_for_config!
-        if !(@options[:host] = ARGV.shift)
+        if ARGV.length != 1
           puts opt
           exit(1)
         end
-      end
-    end
-
-    def look_for_config!
-      if !File.exists?(@options[:file])
-        fatal("Sadly, I can't find #{@options[:file]} here. Please create one.")
+        @options[:host] = ARGV.shift
       end
     end
 
     # Read Telfile
     def read_config
-      look_for_config!
+      if !File.exists?(@options[:file])
+        fatal("Sadly, I can't find #{@options[:file]} here. Please create one.")
+      end
       @config = Config.new(@options[:file])
     end
 
@@ -141,6 +143,11 @@ module Teleport
         read_config
       end
       Install.new(@config)
+    end
+
+    # try to infer a new Telfile based on the current machine
+    def infer
+      Infer.new
     end
   end
 end

@@ -1,4 +1,5 @@
 require "cgi"
+require "digest/md5"
 require "etc"
 require "fileutils"
 
@@ -56,7 +57,7 @@ module Teleport
     end
 
     # Run a command, raise an error upon failure. The output is
-    # capture as a string and returned.
+    # captured as a string and returned.
     def run_capture(command, *args)
       if !args.empty?
         args = args.flatten.map { |i| shell_escape(i) }.join(" ")
@@ -70,6 +71,13 @@ module Teleport
         raise RunError, "#{command} failed : #{$?.to_i / 256} #{result.inspect}"
       end
       result
+    end
+
+    # Run a command and split the result into lines, raise an error
+    # upon failure. The output is captured as an array of strings and
+    # returned.
+    def run_capture_lines(command, *args)
+      run_capture(command, args).split("\n")
     end
 
     # Run a command but don't send any output to $stdout/$stderr.
@@ -304,7 +312,18 @@ module Teleport
       end
       false
     end
-    
+
+    # Calculate the md5 checksum for a file
+    def md5sum(path)
+      digest, buf = Digest::MD5.new, ""
+      File.open(path) do |f|
+        while f.read(4096, buf)
+          digest.update(buf)
+        end
+      end
+      digest.hexdigest
+    end
+
     private
 
     # Returns true if verbosity is turned on.

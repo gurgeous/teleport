@@ -31,8 +31,12 @@ module Teleport
         copy_metadata(path, tmp)
         path = tmp
       end
-      
-      cp_if_necessary(path, dst, user_for_file(dst), mode_for_file(dst))
+
+      if !File.symlink?(path)
+        cp_if_necessary(path, dst, user_for_file(dst), mode_for_file(dst))
+      else
+        ln_if_necessary(File.readlink(path), dst)
+      end
     end
 
     # Install directory from the teleport data directory into the
