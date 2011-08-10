@@ -71,7 +71,7 @@ module Teleport
     def initialize
       @telfile = []
 
-      if fails?("uname -a | grep -q Ubuntu")
+      if fails?("grep -q Ubuntu /etc/lsb-release")
         fatal "Sorry, --infer can only run on an Ubuntu machine."
       end
       
@@ -208,7 +208,7 @@ module Teleport
     class Apt
       include Util
 
-      BLACKLIST = /^linux-(generic|headers|image)/
+      BLACKLIST = /^(linux-|grub-|cloud-init)/
       
       Package = Struct.new(:name, :status, :deps, :base, :parents)
 

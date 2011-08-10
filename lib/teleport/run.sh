@@ -90,7 +90,7 @@ function install_ruby_ree() {
 #
 
 # are we on Ubuntu?
-if ! uname -a | grep -q Ubuntu ; then
+if ! grep -q Ubuntu /etc/lsb-release ; then
   fatal "Teleport only works with Ubuntu"
 fi
 
