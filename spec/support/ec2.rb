@@ -76,10 +76,11 @@ EOF
         puts "Waiting for ec2 instance to start..."
         while true
           sleep 3
-          instance = describe_instances.first
-          status = instance["instanceState"]["name"]
-          puts "  #{instance["instanceId"]}: #{status}"
-          break if status == "running"
+          if instance = describe_instances.first
+            status = instance["instanceState"]["name"]
+            puts "  #{instance["instanceId"]}: #{status}"
+            break if status == "running"
+          end
         end
 
         # return the ip address

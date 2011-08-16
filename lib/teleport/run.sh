@@ -48,7 +48,7 @@ function install_ruby_187() {
 }
 
 function install_ruby_192() {
-  local patch=p180
+  local patch=p290
   
   # see http://threebrothers.org/brendan/blog/ruby-1-9-2-on-ubuntu-11-04/
   sudo apt-get install -y bison build-essential checkinstall libffi5 libssl-dev libyaml-dev zlib1g-dev
