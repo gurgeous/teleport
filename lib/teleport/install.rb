@@ -102,7 +102,7 @@ module Teleport
       banner "Running Shell Commands..."
       @config.shell.each do |line|
         banner "Executing: #{line}"
-        run_capture("#{line}")
+        run("#{line}")
       end
     end
 
@@ -128,6 +128,10 @@ module Teleport
         hosts = File.read("/etc/hosts")
 
         # old_hostname => @host
+        # We also want to write a 127.0.0.1 hostname hostname.domain.tld line.
+        host_name = @host.split(".").first
+        fqdn = @host
+        hosts.unshift("127.0.0.1 #{host_name} #{fqdn}")
         hosts.gsub!(_etc_hosts_regex(old_hostname), "\\1#{@host}\\2")
         if hosts !~ _etc_hosts_regex(@host)
           # not found? append to localhost
