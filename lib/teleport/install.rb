@@ -85,6 +85,7 @@ module Teleport
       if !gems.empty?
         banner "Uninstalling #{gems.length} system gems..."
         gems.each do |i|
+          break if @config.gems.each.include? i
           run "gem uninstall -aIx #{i}"
         end
       end
