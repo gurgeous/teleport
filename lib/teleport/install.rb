@@ -115,7 +115,7 @@ module Teleport
       return if @host =~ /:/
 
       old_hostname = `hostname`.strip
-      return if old_hostname == @host
+      #return if old_hostname == @host
 
       puts "setting hostname to #{@host} (it was #{old_hostname})..."
       File.open("/etc/hostname", "w") do |f|
@@ -131,7 +131,7 @@ module Teleport
         # We also want to write a 127.0.0.1 hostname hostname.domain.tld line.
         host_name = @host.split(".").first
         fqdn = @host
-        hosts.unshift("127.0.0.1 #{host_name} #{fqdn}")
+        hosts = "127.0.0.1 #{host_name} #{fqdn}\n" + hosts
         hosts.gsub!(_etc_hosts_regex(old_hostname), "\\1#{@host}\\2")
         if hosts !~ _etc_hosts_regex(@host)
           # not found? append to localhost
