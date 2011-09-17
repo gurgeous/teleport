@@ -99,7 +99,11 @@ module Teleport
     end
 
     def _shell
-      @config.shell.each {|l| run_capture(shell_escape(l))} #each line is run as a command, with the flags etc. handled automatically
+      banner "Running Shell Commands..."
+      @config.shell.each do |line|
+        banner "Executing: #{line}"
+        run_capture("#{line}")
+      end
     end
 
     def _hostname
