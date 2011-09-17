@@ -3,7 +3,7 @@ module Teleport
   class Config
     RUBIES = ["1.9.2", "REE", "1.8.7"]
 
-    attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :gems, :callbacks, :dsl
+    attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :shell, :gems, :callbacks, :dsl
     
     def initialize(file = "Telfile")
       @roles = []
