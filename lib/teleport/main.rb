@@ -27,13 +27,9 @@ module Teleport
     def cli(cmd)
       @options = { }
       @options[:cmd] = cmd
-      @options[:file] = "Telfile"
 
       opt = OptionParser.new do |o|
         o.banner = "Usage: teleport <hostname>"
-        o.on("-f", "--file FILE", "use this file instead of Telfile") do |f|
-          @options[:file] = f
-        end
         o.on("-i", "--infer", "infer a new Telfile from YOUR machine") do |f|
           @options[:cmd] = :infer
         end
@@ -63,10 +59,10 @@ module Teleport
 
     # Read Telfile
     def read_config
-      if !File.exists?(@options[:file])
-        fatal("Sadly, I can't find #{@options[:file]} here. Please create one.")
+      if !File.exists?("Telfile")
+        fatal("Sadly, I can't find Telfile here. Please create one.")
       end
-      @config = Config.new(@options[:file])
+      @config = Config.new("Telfile")
     end
 
     # Assemble the the tgz before we teleport to the host
@@ -76,12 +72,12 @@ module Teleport
       
       # gem
       run("cp", ["-r", "#{File.dirname(__FILE__)}/../../lib", GEM])
-      # Telfile, if necessary
-      if @options[:file] != "Telfile"
-        run("cp", [@options[:file], "Telfile"])
-      end
       # data
-      run("cp", ["-r", ".", DATA])
+      mkdir(DATA)
+      copy = []
+      copy << "Telfile"
+      copy += Dir["files*"]
+      copy.sort.each { |i| run("cp", ["-r", i, DATA]) }
       # config.sh
       File.open("#{DIR}/config", "w") do |f|
         f.puts("CONFIG_HOST='#{@options[:host]}'")        
