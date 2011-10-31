@@ -1,10 +1,10 @@
 module Teleport
   # Class that performs the install on the target machine.
   class Install
-    include Constants    
+    include Constants
     include Util
-    include Mirror    
-    
+    include Mirror
+
     def initialize(config)
       @config = config
       run_verbose!
@@ -16,12 +16,12 @@ module Teleport
       Config::DSL.const_set("ROLE", @role && @role.name)
 
       # add mixins
-      @config.dsl.extend(Mirror)      
+      @config.dsl.extend(Mirror)
       @config.dsl.extend(Util)
       @config.dsl.run_verbose!
-      
+
       _with_callback(:install) do
-        _gems
+        _gem_reset
         _hostname
         _with_callback(:user) do
           _create_user
@@ -33,6 +33,12 @@ module Teleport
         _with_callback(:files) do
           _files
         end
+        _with_callback(:gems) do
+          _gem_install
+        end
+        _with_callback(:shell) do
+          _shell
+        end
       end
     end
 
@@ -40,7 +46,7 @@ module Teleport
 
     def _read_config
       # read DIR/config to get CONFIG_HOST (and set @host)
-      config_file = { }
+      config_file = {}
       File.readlines("config").each do |i|
         if i =~ /CONFIG_([^=]+)='([^']*)'/
           config_file[$1.downcase.to_sym] = $2
@@ -63,8 +69,8 @@ module Teleport
       end
     end
 
-    def _gems
-      banner "Gems..."
+    def _gem_reset
+      banner "Resetting Gems..."
 
       # update rubygems if necessary
       gem_version = `gem --version`.strip.split(".").map(&:to_i)
@@ -79,12 +85,26 @@ module Teleport
       if !gems.empty?
         banner "Uninstalling #{gems.length} system gems..."
         gems.each do |i|
+          break if @config.gems.each.include? i
           run "gem uninstall -aIx #{i}"
         end
       end
 
       # install bundler
       gem_if_necessary("bundler")
+    end
+
+    def _gem_install
+      banner "Installing Gems..."
+      @config.gems.each { |g| gem_if_necessary("#{g}") }
+    end
+
+    def _shell
+      banner "Running Shell Commands..."
+      @config.shell.each do |line|
+        banner "Executing: #{line}"
+        run("#{line}")
+      end
     end
 
     def _hostname
@@ -94,10 +114,10 @@ module Teleport
       return if @host =~ /^\d+(\.\d+){3}$/
       # ipv6?
       return if @host =~ /:/
-      
+
       old_hostname = `hostname`.strip
-      return if old_hostname == @host
-      
+      #return if old_hostname == @host
+
       puts "setting hostname to #{@host} (it was #{old_hostname})..."
       File.open("/etc/hostname", "w") do |f|
         f.write @host
@@ -109,10 +129,14 @@ module Teleport
         hosts = File.read("/etc/hosts")
 
         # old_hostname => @host
+        # We also want to write a 127.0.0.1 hostname hostname.domain.tld line.
+        host_name = @host.split(".").first
+        fqdn = @host
+        hosts = "127.0.0.1 #{host_name} #{fqdn}\n" + hosts
         hosts.gsub!(_etc_hosts_regex(old_hostname), "\\1#{@host}\\2")
         if hosts !~ _etc_hosts_regex(@host)
           # not found? append to localhost
-          hosts.gsub!(_etc_hosts_regex("localhost"), "\\1localhost #{@host}\\2")
+          #hosts.gsub!(_etc_hosts_regex("localhost"), "\\1localhost #{@host}\\2")
           if hosts !~ _etc_hosts_regex(@host)
             puts "  Hm. I couldn't add it, unfortunately. You'll have to do it manually."
           end
@@ -124,7 +148,7 @@ module Teleport
 
     def _create_user
       user = @config.user
-      
+
       banner "Creating #{user} account..."
       # create the account
       if !File.directory?("/home/#{user}")
@@ -158,7 +182,7 @@ EOF
       banner "Apt..."
 
       dirty = false
-      
+
       # keys
       keys = @config.apt.map { |i| i.options[:key] }.compact
       keys.each do |i|
@@ -200,7 +224,7 @@ EOF
     end
 
     protected
-    
+
     def _with_callback(op, &block)
       if before = @config.callbacks["before_#{op}".to_sym]
         before.call
@@ -227,7 +251,7 @@ EOF
     end
 
     def _etc_hosts_regex(host)
-      /^([^#]+[ \t])#{Regexp.escape(host)}([ \t]|$)/ 
+      /^([^#]+[ \t])#{Regexp.escape(host)}([ \t]|$)/
     end
   end
 end

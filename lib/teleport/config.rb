@@ -3,13 +3,15 @@ module Teleport
   class Config
     RUBIES = ["1.9.3", "1.9.2", "REE", "1.8.7"]
 
-    attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :callbacks, :dsl
+    attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :shell, :gems, :callbacks, :dsl
     
     def initialize(file = "Telfile")
       @roles = []
       @servers = []
       @apt = []
       @packages = []
+      @shell = []
+      @gems = []
       @callbacks = { }
 
       @dsl = DSL.new(self)
@@ -118,7 +120,15 @@ module Teleport
         @config.packages += list.flatten
       end
 
-      %w(install user packages files).each do |op|
+      def gems(*list)
+        @config.gems += list.flatten
+      end
+
+      def shell(heredoc)
+        @config.shell += heredoc.split(/\n/)
+      end
+
+      %w(install user packages gems files).each do |op|
         %w(before after).each do |before_after|
           callback = "#{before_after}_#{op}".to_sym
           define_method(callback) do |&block|
