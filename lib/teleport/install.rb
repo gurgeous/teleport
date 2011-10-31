@@ -97,15 +97,21 @@ module Teleport
       end
       run "hostname -F /etc/hostname"
 
-      puts "adding #{@host} to /etc/hosts ..."
+      # list of hostnames to add to /etc/hosts
+      hostnames = []
+      hostnames << @host
+      hostnames << @host.split(".").first if @host.index(".")
+      hostnames = hostnames.join(" ")
+
+      puts "adding #{hostnames} to /etc/hosts ..."
       _rewrite("/etc/hosts") do |fout|
         hosts = File.read("/etc/hosts")
 
         # old_hostname => @host
-        hosts.gsub!(_etc_hosts_regex(old_hostname), "\\1#{@host}\\2")
+        hosts.gsub!(_etc_hosts_regex(old_hostname), "\\1#{hostnames}\\2")
         if hosts !~ _etc_hosts_regex(@host)
           # not found? append to localhost
-          hosts.gsub!(_etc_hosts_regex("localhost"), "\\1localhost #{@host}\\2")
+          hosts.gsub!(_etc_hosts_regex("localhost"), "\\1localhost #{hostnames}\\2")
           if hosts !~ _etc_hosts_regex(@host)
             puts "  Hm. I couldn't add it, unfortunately. You'll have to do it manually."
           end
