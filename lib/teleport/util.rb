@@ -89,6 +89,11 @@ module Teleport
       run("#{command} > /dev/null 2> /dev/null")
     end
 
+    # Run one or several commands, separate by newlines.
+    def shell(commands)
+      commands.split("\n").each { |i| run(i) }
+    end
+
     # Run a command, return true if it succeeds.
     def succeeds?(command)
       system("#{command} > /dev/null 2> /dev/null")
