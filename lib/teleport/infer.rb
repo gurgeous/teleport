@@ -138,6 +138,7 @@ module Teleport
       when /Ruby Enterprise Edition/ then ruby = "REE"
       when /1\.8\.7/ then ruby = "1.8.7"
       when /1\.9\.2/ then ruby = "1.9.2"
+      when /1\.9\.3/ then ruby = "1.9.3"        
       end
       append "ruby #{ruby.inspect}" if ruby
     end

@@ -33,6 +33,7 @@ function install_ruby() {
   case $CONFIG_RUBY in
     1.8.7 ) install_ruby_187 ;;
     1.9.2 ) install_ruby_192 ;;
+    1.9.3 ) install_ruby_193 ;;    
     REE )   install_ruby_ree ;;
 	* )     fatal "unknown ruby ($CONFIG_RUBY)" ;;
   esac
@@ -76,6 +77,37 @@ function install_ruby_192() {
                            --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem1.9.2 \
                            --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.2 \
                            --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.2
+}
+
+function install_ruby_193() {
+  local patch=p0
+  
+  # see http://threebrothers.org/brendan/blog/ruby-1-9-2-on-ubuntu-11-04/
+  sudo apt-get install -y bison build-essential checkinstall libffi5 libssl-dev libyaml-dev zlib1g-dev
+
+  wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-$patch.tar.gz
+  tar xvzf ruby-1.9.3-$patch.tar.gz
+  
+  cd ruby-1.9.3-$patch
+  ./configure --prefix=/usr/local \
+              --program-suffix=1.9.3 \
+              --with-ruby-version=1.9.3 \
+              --disable-install-doc
+  make
+  sudo checkinstall -D -y \
+                    --fstrans=no \
+                    --nodoc \
+                    --pkgname="ruby1.9.3" \
+                    --pkgversion="1.9.3-$patch" \
+                    --provides="ruby"
+  cd ..
+
+  sudo update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby1.9.3 500 \
+                           --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri1.9.3 \
+                           --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb1.9.3 \
+                           --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem1.9.3 \
+                           --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.3 \
+                           --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.3
 }
 
 function install_ruby_ree() {

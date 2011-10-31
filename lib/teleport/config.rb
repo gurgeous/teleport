@@ -1,7 +1,7 @@
 module Teleport
   # This class parses Telfile, and includes DSL and the models.
   class Config
-    RUBIES = ["1.9.2", "REE", "1.8.7"]
+    RUBIES = ["1.9.3", "1.9.2", "REE", "1.8.7"]
 
     attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :callbacks, :dsl
     
