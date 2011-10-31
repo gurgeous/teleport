@@ -5,6 +5,15 @@ module Teleport
   module Mirror
     include Constants
 
+    # Don't install these files.
+    IGNORE = [
+              ".",
+              "..",
+              "Gemfile",
+              "Gemfile.lock",              
+              /^.#/,
+             ]
+
     # Install file from the teleport data directory into the normal
     # filesystem. Path can use a few different formats:
     #
@@ -56,7 +65,7 @@ module Teleport
       mkdir_if_necessary(dst, user_for_file(dst)) if !dst.empty?      
       
       files = Dir.new(path).to_a.sort
-      files.delete_if { |i| i == "." || i == ".." || i =~ /^.#/ }
+      files.delete_if { |file| IGNORE.any? { |i| i === file } }
       files.each do |i|
         i = "#{path}/#{i}"
         if File.directory?(i)

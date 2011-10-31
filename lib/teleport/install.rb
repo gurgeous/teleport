@@ -30,6 +30,9 @@ module Teleport
         _with_callback(:packages) do
           _packages
         end
+        _with_callback(:gemfiles) do
+          _gemfiles
+        end
         _with_callback(:files) do
           _files
         end
@@ -71,16 +74,6 @@ module Teleport
       if (gem_version <=> RUBYGEMS.split(".").map(&:to_i)) == -1
         banner "Upgrading rubygems..."
         run "gem update --system"
-      end
-
-      # uninstall all gems except for bundler
-      gems = `gem list`.split("\n").map { |i| i.split.first }
-      gems.delete("bundler")
-      if !gems.empty?
-        banner "Uninstalling #{gems.length} system gems..."
-        gems.each do |i|
-          run "gem uninstall -aIx #{i}"
-        end
       end
 
       # install bundler
@@ -188,6 +181,21 @@ EOF
       list += @role.packages if @role
       list += @server.packages if @server
       list.sort.each { |i| package_if_necessary(i) }
+    end
+
+    def _gemfiles
+      files = ["files"]
+      files << "files_#{@role.name}" if @role
+      Dir.chdir(DATA) do
+        files.each do |i|
+          gemfile = "#{i}/Gemfile"
+          lock = "#{gemfile}.lock"
+          if File.exists?(gemfile)
+            banner "Gemfiles - #{gemfile}..."
+            run "bundle install --gemfile #{gemfile}"
+          end
+        end
+      end
     end
 
     def _files

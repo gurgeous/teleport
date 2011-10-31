@@ -15,5 +15,5 @@ module Constants
   PUBKEY = "id_teleport.pub"
 
   # Minimum version of rubygems to install.
-  RUBYGEMS = "1.8.5"
+  RUBYGEMS = "1.8.10"
 end

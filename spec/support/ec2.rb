@@ -3,9 +3,10 @@ require "AWS"
 # spin up a fresh ec2 instance
 module Support
   module Ec2
-    AMI_10_04 = "fbbf7892"
-    AMI_10_10 = "08f40561"
-    AMI_11_04 = "68ad5201"
+    AMI_10_04 = "1136fb78"
+    AMI_10_10 = "1933fe70"
+    AMI_11_04 = "71589518"
+    AMI_11_10 = "4b772b0e"    
     KEYPAIR = "teleport"
     GROUP = "teleport"
 

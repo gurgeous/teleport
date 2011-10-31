@@ -17,6 +17,8 @@ module Teleport
 
       @user ||= Util.whoami
       @ruby ||= RUBIES.first
+
+      sanity_check_gemfiles
     end
 
     def role(n)
@@ -25,6 +27,17 @@ module Teleport
 
     def server(n)
       @servers.find { |i| i.name == n.to_s }      
+    end
+
+    def sanity_check_gemfiles
+      files = ["files"] + @roles.map { |i| "files_#{i.name}" }
+      files.each do |i|
+        gemfile = "#{i}/Gemfile"
+        lock = "#{gemfile}.lock"
+        if File.exists?(gemfile) && !File.exists?(lock)
+          Util.fatal "Hm. I found #{gemfile}, but you forgot to create #{lock}."
+        end
+      end
     end
 
     # The model for role in the Telfile.
@@ -118,7 +131,7 @@ module Teleport
         @config.packages += list.flatten
       end
 
-      %w(install user packages files).each do |op|
+      %w(install user packages gemfiles files).each do |op|
         %w(before after).each do |before_after|
           callback = "#{before_after}_#{op}".to_sym
           define_method(callback) do |&block|

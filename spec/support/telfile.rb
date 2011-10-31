@@ -21,5 +21,17 @@ module Support
         Dir.chdir(pwd)
       end
     end
+
+    def role(role, files)
+      before(:all) do
+        path = (role == nil) ? "files" : "files_#{role}"
+        `mkdir -p #{path}`
+        Dir.chdir(path) do
+          files.each_pair do |key, value|
+            File.open(key, "w") { |f| f.write(value) }
+          end
+        end
+      end
+    end
   end
 end

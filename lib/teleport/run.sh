@@ -44,7 +44,7 @@ function install_ruby_187() {
   
   wget http://production.cf.rubygems.org/rubygems/rubygems-$CONFIG_RUBYGEMS.tgz
   tar xfpz rubygems-$CONFIG_RUBYGEMS.tgz
-  (cd rubygems-$CONFIG_RUBYGEMS ; ruby setup.rb)
+  (cd rubygems-$CONFIG_RUBYGEMS ; sudo ruby setup.rb)
   ln -s /usr/bin/gem1.8 /usr/bin/gem
 }
 
@@ -114,6 +114,9 @@ function install_ruby_ree() {
   local ree="ruby-enterprise_1.8.7-2011.03_${ARCH}_ubuntu10.04.deb"
   wget http://rubyenterpriseedition.googlecode.com/files/$ree
   sudo dpkg -i $ree
+
+  # remove all gems
+  gem list | cut -d" " -f1 | xargs sudo gem uninstall
 }
 
 
