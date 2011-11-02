@@ -72,7 +72,7 @@ module Teleport
       def initialize(name, options)
         raise "server name must be a string" if !name.is_a?(String)
         raise "server options must be a hash" if !options.is_a?(Hash)
-        raise "server :role must be a sym" if !options[:role].is_a?(Symbol)
+        raise "server :role must be a sym" if options[:role] && !options[:role].is_a?(Symbol)
 
         @name, @options, @packages, @recipes = name, options, [], []
 
