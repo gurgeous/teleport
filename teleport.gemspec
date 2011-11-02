@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Adam Doppelt"]
   s.email       = ["amd@gurge.com"]
-  s.homepage    = "http://github.com/rglabs/teleport"  
+  s.homepage    = "http://github.com/gurgeous/teleport"  
   s.summary     = "Teleport - opinionated Ubuntu server setup with Ruby."
   s.description = "Easy Ubuntu server setup via teleportation."
 

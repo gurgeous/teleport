@@ -59,4 +59,4 @@ Teleport will ssh to the machine and set it up per your instructions.
 
 Full docs are in the wiki:
 
-https://github.com/rglabs/teleport/wiki
+https://github.com/gurgeous/teleport/wiki
