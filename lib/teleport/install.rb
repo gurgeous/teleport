@@ -88,14 +88,14 @@ module Teleport
       list += @role.recipes if @role
       list += @server.recipes if @server
 
-      banner "Running Recipes..."
+      banner "Recipes..."
       list.each do |recipe|
         path = "#{DATA}/recipes/#{recipe}"
         if File.exists?(path)
           banner "#{recipe}..."
           # eval ruby files instead of running them
           if path =~ /\.rb$/
-            eval File.read(path)
+            eval(File.read(path), nil, path)
           else
             run path
           end

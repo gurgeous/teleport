@@ -77,7 +77,7 @@ module Teleport
       copy = []
       copy << "Telfile"
       copy += Dir["files*"]
-      copy += Dir["recipes*"]
+      copy << "recipes" if File.exists?("recipes")
       copy.sort.each { |i| run("cp", ["-r", i, DATA]) }
       # config.sh
       File.open("#{DIR}/config", "w") do |f|

@@ -152,7 +152,7 @@ module Teleport
         @config.recipes += list.flatten
       end
 
-      %w(install user packages gemfiles files).each do |op|
+      %w(install user packages gemfiles files recipes).each do |op|
         %w(before after).each do |before_after|
           callback = "#{before_after}_#{op}".to_sym
           define_method(callback) do |&block|
