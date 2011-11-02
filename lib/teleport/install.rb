@@ -95,7 +95,7 @@ module Teleport
           banner "#{recipe}..."
           run path
         else
-          warning "Recipe '#{recipe}' does not exist inside recipes/"
+          fatal "Recipe '#{recipe}' does not exist inside recipes/"
         end
       end
     end
