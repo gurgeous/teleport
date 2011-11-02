@@ -1,10 +1,10 @@
 module Teleport
   # Class that performs the install on the target machine.
   class Install
-    include Constants    
+    include Constants
     include Util
-    include Mirror    
-    
+    include Mirror
+
     def initialize(config)
       @config = config
       run_verbose!
@@ -16,10 +16,10 @@ module Teleport
       Config::DSL.const_set("ROLE", @role && @role.name)
 
       # add mixins
-      @config.dsl.extend(Mirror)      
+      @config.dsl.extend(Mirror)
       @config.dsl.extend(Util)
       @config.dsl.run_verbose!
-      
+
       _with_callback(:install) do
         _gems
         _hostname
@@ -35,6 +35,9 @@ module Teleport
         end
         _with_callback(:files) do
           _files
+        end
+        _with_callback(:recipes) do
+          _recipes
         end
       end
     end
@@ -80,6 +83,23 @@ module Teleport
       gem_if_necessary("bundler")
     end
 
+    def _recipes
+      list = @config.recipes
+      list += @role.recipes if @role
+      list += @server.recipes if @server
+
+      banner "Running Recipes..."
+      list.each do |recipe|
+        path = "#{DATA}/recipes/#{recipe}"
+        if File.exists?(path)
+          banner "#{recipe}..."
+          run path
+        else
+          warning "Recipe '#{recipe}' does not exist inside recipes/"
+        end
+      end
+    end
+
     def _hostname
       banner "Hostname..."
 
@@ -87,10 +107,10 @@ module Teleport
       return if @host =~ /^\d+(\.\d+){3}$/
       # ipv6?
       return if @host =~ /:/
-      
+
       old_hostname = `hostname`.strip
       return if old_hostname == @host
-      
+
       puts "setting hostname to #{@host} (it was #{old_hostname})..."
       File.open("/etc/hostname", "w") do |f|
         f.write @host
@@ -123,7 +143,7 @@ module Teleport
 
     def _create_user
       user = @config.user
-      
+
       banner "Creating #{user} account..."
       # create the account
       if !File.directory?("/home/#{user}")
@@ -157,7 +177,7 @@ EOF
       banner "Apt..."
 
       dirty = false
-      
+
       # keys
       keys = @config.apt.map { |i| i.options[:key] }.compact
       keys.each do |i|
@@ -214,7 +234,7 @@ EOF
     end
 
     protected
-    
+
     def _with_callback(op, &block)
       if before = @config.callbacks["before_#{op}".to_sym]
         before.call
@@ -241,7 +261,7 @@ EOF
     end
 
     def _etc_hosts_regex(host)
-      /^([^#]+[ \t])#{Regexp.escape(host)}([ \t]|$)/ 
+      /^([^#]+[ \t])#{Regexp.escape(host)}([ \t]|$)/
     end
   end
 end
