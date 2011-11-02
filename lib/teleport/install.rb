@@ -93,7 +93,12 @@ module Teleport
         path = "#{DATA}/recipes/#{recipe}"
         if File.exists?(path)
           banner "#{recipe}..."
-          run path
+          # eval ruby files instead of running them
+          if path =~ /\.rb$/
+            eval File.read(path)
+          else
+            run path
+          end
         else
           fatal "Recipe '#{recipe}' does not exist inside recipes/"
         end
