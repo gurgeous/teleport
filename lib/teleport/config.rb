@@ -3,13 +3,14 @@ module Teleport
   class Config
     RUBIES = ["1.9.3", "1.9.2", "REE", "1.8.7"]
 
-    attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :callbacks, :dsl
-    
+    attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :recipes, :callbacks, :dsl
+
     def initialize(file = "Telfile")
       @roles = []
       @servers = []
       @apt = []
       @packages = []
+      @recipes = []
       @callbacks = { }
 
       @dsl = DSL.new(self)
@@ -26,7 +27,7 @@ module Teleport
     end
 
     def server(n)
-      @servers.find { |i| i.name == n.to_s }      
+      @servers.find { |i| i.name == n.to_s }
     end
 
     def sanity_check_gemfiles
@@ -42,33 +43,49 @@ module Teleport
 
     # The model for role in the Telfile.
     class Role
-      attr_reader :name, :options, :packages
-      
+      attr_reader :name, :options, :packages, :recipes
+
       def initialize(name, options)
         raise "role name must be a sym" if !name.is_a?(Symbol)
         raise "role options must be a hash" if !options.is_a?(Hash)
-        
-        @name, @options, @packages = name, options, []
+
+        @name, @options, @packages, @recipes = name, options, [], []
+
+        # Packages
         if p = @options.delete(:packages)
           raise "role :packages must be an array" if !p.is_a?(Array)
           @packages = p
+        end
+
+        # Recipes
+        if r = @options.delete(:recipes)
+          raise "server :recipes must be an array" if !r.is_a?(Array)
+          @recipes = r
         end
       end
     end
 
     # The model for server in the Telfile.
     class Server
-      attr_reader :name, :options, :packages
-      
+      attr_reader :name, :options, :packages, :recipes
+
       def initialize(name, options)
         raise "server name must be a string" if !name.is_a?(String)
         raise "server options must be a hash" if !options.is_a?(Hash)
-        raise "server :role must be a sym" if !options[:role].is_a?(Symbol)
-        
-        @name, @options, @packages = name, options, []
+        raise "server :role must be a sym" if options[:role] && !options[:role].is_a?(Symbol)
+
+        @name, @options, @packages, @recipes = name, options, [], []
+
+        # Packages
         if p = @options.delete(:packages)
           raise "server :packages must be an array" if !p.is_a?(Array)
           @packages = p
+        end
+
+        # Recipes
+        if r = @options.delete(:recipes)
+          raise "server :recipes must be an array" if !r.is_a?(Array)
+          @recipes = r
         end
       end
     end
@@ -96,20 +113,20 @@ module Teleport
 
       def ruby(v)
         raise "ruby called twice" if @config.ruby
-        raise "ruby must be a string" if !v.is_a?(String)                
+        raise "ruby must be a string" if !v.is_a?(String)
         raise "don't recognize ruby #{v.inspect}." if !Config::RUBIES.include?(v)
         @config.ruby = v
       end
-      
+
       def user(v)
         raise "user called twice" if @config.user
-        raise "user must be a string" if !v.is_a?(String)        
+        raise "user must be a string" if !v.is_a?(String)
         @config.user = v
       end
 
       def ssh_options(v)
         raise "ssh_options called twice" if @config.ssh_options
-        raise "ssh_options must be an Array" if !v.is_a?(Array)        
+        raise "ssh_options must be an Array" if !v.is_a?(Array)
         @config.ssh_options = v
       end
 
@@ -131,7 +148,11 @@ module Teleport
         @config.packages += list.flatten
       end
 
-      %w(install user packages gemfiles files).each do |op|
+      def recipes(*list)
+        @config.recipes += list.flatten
+      end
+
+      %w(install user packages gemfiles files recipes).each do |op|
         %w(before after).each do |before_after|
           callback = "#{before_after}_#{op}".to_sym
           define_method(callback) do |&block|
