@@ -307,11 +307,9 @@ module Teleport
     # the named gem or false if the gem is not installed
     def gem_version(name)
       spec_out = `gem specification #{name} 2> /dev/null`
-      if spec_out != ''
+      if !spec_out.empty?
         spec = Gem::Specification.from_yaml(spec_out)
         spec.version
-      else
-        false
       end
     end
 
