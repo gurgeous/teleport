@@ -8,7 +8,7 @@ describe "a new ec2 instance" do
   telfile do
     <<EOF
 user "gub"
-ruby "1.8.7"
+ruby "1.9.3"
 ssh_options ["-o", "User=ubuntu", "-o", "StrictHostKeyChecking=no", "-o", "IdentityFile=#{ENV["TELEPORT_SSH_KEY"]}"]
 
 role :master, :packages => %w(nginx), :recipes => %w(ruby.rb)

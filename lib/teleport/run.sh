@@ -25,9 +25,17 @@ function fatal() {
 
 function install_ruby() {
   banner "apt-get update / upgrade..."
-  sudo apt-get update
-  sudo apt-get -y upgrade
-  sudo apt-get install -y wget libreadline5-dev
+  apt-get update
+  apt-get -y upgrade
+
+  # which version of readline to install?
+  local readline
+  if [ "${DISTRIB_RELEASE//[.]/}" -lt "1110" ] ; then
+    readline=libreadline5-dev
+  else
+    readline=libreadline-gplv2-dev
+  fi
+  apt-get install -y wget $readline
   
   banner "installing Ruby $CONFIG_RUBY..."
   case $CONFIG_RUBY in
@@ -40,20 +48,34 @@ function install_ruby() {
 }
 
 function install_ruby_187() {
-  sudo apt-get -y install irb libopenssl-ruby libreadline-ruby rdoc ri ruby ruby-dev
+  apt-get -y install irb libopenssl-ruby libreadline-ruby rdoc ri ruby ruby-dev
   
   wget http://production.cf.rubygems.org/rubygems/rubygems-$CONFIG_RUBYGEMS.tgz
   tar xfpz rubygems-$CONFIG_RUBYGEMS.tgz
-  (cd rubygems-$CONFIG_RUBYGEMS ; sudo ruby setup.rb)
+  (cd rubygems-$CONFIG_RUBYGEMS ; ruby setup.rb)
   ln -s /usr/bin/gem1.8 /usr/bin/gem
+}
+
+#
+# thanks to http://threebrothers.org/brendan/blog/ruby-1-9-2-on-ubuntu-11-04/
+# for suggestions
+#
+
+function install_ruby_19_requirements() {
+  local ffi
+  if [ "${DISTRIB_RELEASE//[.]/}" -lt "1110" ] ; then
+    ffi=libffi5
+  else
+    ffi=libffi6
+  fi
+  apt-get install -y bison build-essential checkinstall $ffi libssl-dev libyaml-dev zlib1g-dev
 }
 
 function install_ruby_192() {
   local patch=p290
-  
-  # see http://threebrothers.org/brendan/blog/ruby-1-9-2-on-ubuntu-11-04/
-  sudo apt-get install -y bison build-essential checkinstall libffi5 libssl-dev libyaml-dev zlib1g-dev
 
+  install_ruby_19_requirements
+  
   wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.2-$patch.tar.gz
   tar xvzf ruby-1.9.2-$patch.tar.gz
   
@@ -63,7 +85,7 @@ function install_ruby_192() {
               --with-ruby-version=1.9.2 \
               --disable-install-doc
   make
-  sudo checkinstall -D -y \
+  checkinstall -D -y \
                     --fstrans=no \
                     --nodoc \
                     --pkgname="ruby1.9.2" \
@@ -71,19 +93,18 @@ function install_ruby_192() {
                     --provides="ruby"
   cd ..
 
-  sudo update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby1.9.2 500 \
-                           --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri1.9.2 \
-                           --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb1.9.2 \
-                           --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem1.9.2 \
-                           --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.2 \
-                           --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.2
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby1.9.2 500 \
+                      --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri1.9.2 \
+                      --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb1.9.2 \
+                      --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem1.9.2 \
+                      --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.2 \
+                      --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.2
 }
 
 function install_ruby_193() {
   local patch=p0
-  
-  # see http://threebrothers.org/brendan/blog/ruby-1-9-2-on-ubuntu-11-04/
-  sudo apt-get install -y bison build-essential checkinstall libffi5 libssl-dev libyaml-dev zlib1g-dev
+
+  install_ruby_19_requirements
 
   wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-$patch.tar.gz
   tar xvzf ruby-1.9.3-$patch.tar.gz
@@ -94,7 +115,7 @@ function install_ruby_193() {
               --with-ruby-version=1.9.3 \
               --disable-install-doc
   make
-  sudo checkinstall -D -y \
+  checkinstall -D -y \
                     --fstrans=no \
                     --nodoc \
                     --pkgname="ruby1.9.3" \
@@ -102,21 +123,21 @@ function install_ruby_193() {
                     --provides="ruby"
   cd ..
 
-  sudo update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby1.9.3 500 \
-                           --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri1.9.3 \
-                           --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb1.9.3 \
-                           --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem1.9.3 \
-                           --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.3 \
-                           --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.3
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby1.9.3 500 \
+                      --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri1.9.3 \
+                      --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb1.9.3 \
+                      --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem1.9.3 \
+                      --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.3 \
+                      --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.3
 }
 
 function install_ruby_ree() {
   local ree="ruby-enterprise_1.8.7-2011.03_${ARCH}_ubuntu10.04.deb"
   wget http://rubyenterpriseedition.googlecode.com/files/$ree
-  sudo dpkg -i $ree
+  dpkg -i $ree
 
   # remove all gems
-  gem list | cut -d" " -f1 | xargs sudo gem uninstall
+  gem list | cut -d" " -f1 | xargs gem uninstall
 }
 
 
@@ -132,8 +153,7 @@ fi
 # which version?
 . /etc/lsb-release
 case $DISTRIB_RELEASE in
-  10.*  ) ;; # nop
-  11.04 ) ;; # nop
+  10.* | 11.* ) ;; # nop
   *)
     banner "warning - Ubuntu $DISTRIB_RELEASE hasn't been tested with Teleport yet"
 esac
