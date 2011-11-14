@@ -273,7 +273,7 @@ module Teleport
 
     # Returns true if the pkg is installed.
     def package_is_installed?(pkg)
-      succeeds?("dpkg-query -f='${Status}' -W #{pkg} | grep 'install ok installed' 2> /dev/null")    
+      succeeds?("dpkg-query -f='${Status}' -W #{pkg} 2>&1 | grep 'install ok installed'")    
     end
 
     # Install pkg if necessary.
