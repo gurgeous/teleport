@@ -86,9 +86,9 @@ module Teleport
         f.puts("CONFIG_RUBYGEMS='#{RUBYGEMS}'")        
       end
       # keys
-      ssh_key = "#{ENV["HOME"]}/.ssh/#{PUBKEY}"
+      ssh_key = @config.ssh_key
       if File.exists?(ssh_key)
-        run("cp", [ssh_key, DIR])
+        run("cp", [ssh_key, "#{DIR}/#{PUBKEY}"])
       end
       
       Dir.chdir(File.dirname(DIR)) do
