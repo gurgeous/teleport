@@ -33,5 +33,18 @@ module Support
         end
       end
     end
+
+    def recipe(name, content)
+      before(:all) do
+        path = "recipes"
+        `mkdir -p #{path}`
+        Dir.chdir(path) do
+          File.open(name, "w") { |f| f.write(content) }
+          if name !~ /\.rb/
+            File.chmod 0755, name
+          end
+        end
+      end
+    end
   end
 end

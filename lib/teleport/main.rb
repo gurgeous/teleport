@@ -77,6 +77,7 @@ module Teleport
       copy = []
       copy << "Telfile"
       copy += Dir["files*"]
+      copy << "recipes" if File.exists?("recipes")
       copy.sort.each { |i| run("cp", ["-r", i, DATA]) }
       # config.sh
       File.open("#{DIR}/config", "w") do |f|
@@ -110,7 +111,7 @@ module Teleport
                "cd /tmp",
                "(sudo -n echo gub > /dev/null 2> /dev/null || (echo `whoami` could not sudo. && exit 1))",
                "sudo rm -rf #{DIR}",
-               "sudo tar xfpz #{TAR}",
+               "sudo tar xmfpz #{TAR}",
                "sudo #{DIR}/gem/teleport/run.sh"
               ]
         banner "ssh to #{@options[:host]} and run..."

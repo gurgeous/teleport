@@ -2,6 +2,7 @@ require "cgi"
 require "digest/md5"
 require "etc"
 require "fileutils"
+require "yaml"
 
 module Teleport
   # Helper module for executing commands and printing stuff
@@ -273,7 +274,7 @@ module Teleport
 
     # Returns true if the pkg is installed.
     def package_is_installed?(pkg)
-      succeeds?("dpkg-query -f='${Status}' -W #{pkg} | grep 'install ok installed' 2> /dev/null")    
+      succeeds?("dpkg-query -f='${Status}' -W #{pkg} 2>&1 | grep 'install ok installed'")    
     end
 
     # Install pkg if necessary.
@@ -300,6 +301,16 @@ module Teleport
         return true
       end
       false
+    end
+
+    # Returns the newest currently installed version of
+    # the named gem or false if the gem is not installed
+    def gem_version(name)
+      spec_out = `gem specification #{name} 2> /dev/null`
+      if !spec_out.empty?
+        spec = Gem::Specification.from_yaml(spec_out)
+        spec.version
+      end
     end
 
     # Returns true if the pidfile exists and that process id exists as
