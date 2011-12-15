@@ -167,14 +167,12 @@ EOF
       end
 
       # ssh key, if present
-      if pubkey = @config.ssh_key
-        if File.exists?(PUBKEY)
-          authorized_keys = "/home/#{user}/.ssh/authorized_keys"
-          if !File.exists?(authorized_keys)
-            puts "adding #{File.basename(pubkey)} to authorized_keys..."
-            mkdir_if_necessary(File.dirname(authorized_keys), user, 0700)
-            cp(PUBKEY, authorized_keys, user, 0600)
-          end
+      if File.exists?(PUBKEY)
+        authorized_keys = "/home/#{user}/.ssh/authorized_keys"
+        if !File.exists?(authorized_keys)
+          puts "adding #{File.basename(@config.ssh_key)} to authorized_keys..."
+          mkdir_if_necessary(File.dirname(authorized_keys), user, 0700)
+          cp(PUBKEY, authorized_keys, user, 0600)
         end
       end
     end
