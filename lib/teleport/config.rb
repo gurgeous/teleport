@@ -20,7 +20,6 @@ module Teleport
 
       @user ||= Util.whoami
       @ruby ||= RUBIES.first
-      @ssh_key ||= "#{ENV["HOME"]}/.ssh/#{PUBKEY}"
 
       sanity_check_gemfiles
     end
