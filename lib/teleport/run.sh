@@ -36,12 +36,12 @@ function install_ruby() {
     readline=libreadline-gplv2-dev
   fi
   apt-get install -y wget $readline
-  
+
   banner "installing Ruby $CONFIG_RUBY..."
   case $CONFIG_RUBY in
     1.8.7 ) install_ruby_187 ;;
     1.9.2 ) install_ruby_192 ;;
-    1.9.3 ) install_ruby_193 ;;    
+    1.9.3 ) install_ruby_193 ;;
     REE )   install_ruby_ree ;;
 	* )     fatal "unknown ruby ($CONFIG_RUBY)" ;;
   esac
@@ -49,7 +49,7 @@ function install_ruby() {
 
 function install_ruby_187() {
   apt-get -y install irb libopenssl-ruby libreadline-ruby rdoc ri ruby ruby-dev
-  
+
   wget http://production.cf.rubygems.org/rubygems/rubygems-$CONFIG_RUBYGEMS.tgz
   tar xfpz rubygems-$CONFIG_RUBYGEMS.tgz
   (cd rubygems-$CONFIG_RUBYGEMS ; ruby setup.rb)
@@ -75,13 +75,13 @@ function install_ruby_192() {
   local patch=p290
 
   install_ruby_19_requirements
-  
+
   wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.2-$patch.tar.gz
   tar xvzf ruby-1.9.2-$patch.tar.gz
-  
+
   cd ruby-1.9.2-$patch
   ./configure --prefix=/usr/local \
-              --program-suffix=1.9.2 \
+              --program-suffix=192 \
               --with-ruby-version=1.9.2 \
               --disable-install-doc
   make
@@ -93,42 +93,41 @@ function install_ruby_192() {
                     --provides="ruby"
   cd ..
 
-  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby1.9.2 500 \
-                      --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri1.9.2 \
-                      --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb1.9.2 \
-                      --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem1.9.2 \
-                      --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.2 \
-                      --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.2
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby192 500 \
+                      --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri192 \
+                      --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb192 \
+                      --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem192 \
+                      --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb192 \
+                      --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc192
 }
 
 function install_ruby_193() {
-  local patch=p0
+  local patch=p125
 
   install_ruby_19_requirements
 
   wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-$patch.tar.gz
   tar xvzf ruby-1.9.3-$patch.tar.gz
-  
+
   cd ruby-1.9.3-$patch
   ./configure --prefix=/usr/local \
-              --program-suffix=1.9.3 \
+              --program-suffix=193 \
               --with-ruby-version=1.9.3 \
               --disable-install-doc
   make
   checkinstall -D -y \
-                    --fstrans=no \
                     --nodoc \
                     --pkgname="ruby1.9.3" \
                     --pkgversion="1.9.3-$patch" \
                     --provides="ruby"
   cd ..
 
-  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby1.9.3 500 \
-                      --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri1.9.3 \
-                      --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb1.9.3 \
-                      --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem1.9.3 \
-                      --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb1.9.3 \
-                      --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc1.9.3
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby193 500 \
+                      --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri193 \
+                      --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb193 \
+                      --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem193 \
+                      --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb193 \
+                      --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc193
 }
 
 function install_ruby_ree() {
