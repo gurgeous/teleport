@@ -10,10 +10,13 @@ module Teleport
       run_verbose!
       _read_config
 
-      # setup @config constants
-      Config::DSL.const_set("HOST", @host)
-      Config::DSL.const_set("USER", @config.user)
-      Config::DSL.const_set("ROLE", @role && @role.name)
+      # setup @config constants. Put them in mirror so they're
+      # accessible to both the DSL and Mirror itself. That way you can
+      # access these if you call install_file directly.
+      Mirror.const_set("HOST", @host)
+      Mirror.const_set("USER", @config.user)
+      Mirror.const_set("ROLE", @role && @role.name)
+      Mirror.const_set("SERVER", @server)
 
       # add mixins
       @config.dsl.extend(Mirror)
@@ -220,7 +223,6 @@ EOF
       Dir.chdir(DATA) do
         files.each do |i|
           gemfile = "#{i}/Gemfile"
-          lock = "#{gemfile}.lock"
           if File.exists?(gemfile)
             banner "Gemfiles - #{gemfile}..."
             run "bundle install --gemfile #{gemfile}"
