@@ -21,6 +21,8 @@ describe Teleport::Config do
 user "somebody"
 ruby "1.8.7"
 
+ssh_key "keys/my-key.pub"
+
 role :master, :packages => %w(nginx), :recipes => %w(master.rb)
 role :slave, :packages => %w(memcached)
 server "one", :role => :master, :packages => %w(strace)
@@ -42,6 +44,7 @@ EOF
     let(:config) do
       Teleport::Config.new
     end
+
     it "has the master role" do
       config.role(:master).name.should == :master
       config.role(:master).packages.should == %w(nginx)
@@ -70,6 +73,9 @@ EOF
     it "has an apt line" do
       config.apt.first.line.should == "blah blah blah"
       config.apt.first.options[:key].should == "123"
+    end
+    it "has a ssh key path" do
+      config.ssh_key.should == "keys/my-key.pub"
     end
   end
 end
