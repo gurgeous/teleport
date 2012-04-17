@@ -1,7 +1,5 @@
 ## Welcome to Teleport
 
-This is a fork of https://github.com/gurgeous/teleport, which is the canonical and maintained version of this gem.
-
 Teleport is a lightweight way to set up Ubuntu machines. The name derives from the mechanism that teleport uses to setup the target machine - it copies itself onto the target machine via ssh and then runs itself there. In effect, it "teleports" to the target. This design makes it possible for teleport to bootstrap itself onto a fresh machine. There's no need to install ruby or anything else by hand.
 
 Teleport strives to be **idempotent** - you can run it repeatedly without changing the result. In other words, as you build up your teleport config file you can generally run it over and over again without fear of breaking the target machine.
