@@ -33,6 +33,9 @@ module Teleport
         o.on("-i", "--infer", "infer a new Telfile from YOUR machine") do |f|
           @options[:cmd] = :infer
         end
+        o.on("-r", "--recipe [RECIPE]", "run a single recipe instead of a full install") do |f|
+          @options[:recipe] = f
+        end
         o.on_tail("-h", "--help", "print this help text") do
           puts opt
           exit(0)
@@ -63,6 +66,11 @@ module Teleport
         fatal("Sadly, I can't find Telfile here. Please create one.")
       end
       @config = Config.new("Telfile")
+
+      # check if recipe exists
+      if @options[:recipe] && !File.exists?("recipes/#{@options[:recipe]}")
+        fatal "I couldn't find recipe #{@options[:recipe].inspect}. Oops."
+      end
     end
 
     # Assemble the the tgz before we teleport to the host
@@ -83,7 +91,8 @@ module Teleport
       File.open("#{DIR}/config", "w") do |f|
         f.puts("CONFIG_HOST='#{@options[:host]}'")        
         f.puts("CONFIG_RUBY='#{@config.ruby}'")
-        f.puts("CONFIG_RUBYGEMS='#{RUBYGEMS}'")        
+        f.puts("CONFIG_RUBYGEMS='#{RUBYGEMS}'")
+        f.puts("CONFIG_RECIPE='#{@options[:recipe]}'") if @options[:recipe]
       end
       # keys
       if ssh_key = @config.ssh_key

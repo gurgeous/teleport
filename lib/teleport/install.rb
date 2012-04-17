@@ -23,6 +23,16 @@ module Teleport
       @config.dsl.extend(Util)
       @config.dsl.run_verbose!
 
+      # handle CONFIG_RECIPE
+      if @config_file[:recipe]
+        _with_callback(:install) do
+          _with_callback(:recipes) do
+            _recipe(@config_file[:recipe])
+          end
+        end
+        return
+      end
+
       _with_callback(:install) do
         _gems
         _hostname
@@ -49,13 +59,13 @@ module Teleport
 
     def _read_config
       # read DIR/config to get CONFIG_HOST (and set @host)
-      config_file = { }
+      @config_file = { }
       File.readlines("config").each do |i|
         if i =~ /CONFIG_([^=]+)='([^']*)'/
-          config_file[$1.downcase.to_sym] = $2
+          @config_file[$1.downcase.to_sym] = $2
         end
       end
-      @host = config_file[:host]
+      @host = @config_file[:host]
 
       # do we have a server object?
       @server = @config.server(@host)
@@ -92,19 +102,21 @@ module Teleport
       list += @server.recipes if @server
 
       banner "Recipes..."
-      list.each do |recipe|
-        path = "#{DATA}/recipes/#{recipe}"
-        if File.exists?(path)
-          banner "#{recipe}..."
-          # eval ruby files instead of running them
-          if path =~ /\.rb$/
-            eval(File.read(path), nil, path)
-          else
-            run path
-          end
+      list.each { |i| _recipe(i) }
+    end
+
+    def _recipe(recipe)
+      path = "#{DATA}/recipes/#{recipe}"
+      if File.exists?(path)
+        banner "#{recipe}..."
+        # eval ruby files instead of running them
+        if path =~ /\.rb$/
+          eval(File.read(path), nil, path)
         else
-          fatal "Recipe '#{recipe}' does not exist inside recipes/"
+          run path
         end
+      else
+        fatal "Recipe '#{recipe}' does not exist inside recipes/"
       end
     end
 
