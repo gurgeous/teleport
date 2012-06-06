@@ -27,6 +27,7 @@ function install_ruby() {
   banner "apt-get update / upgrade..."
   apt-get update
   apt-get -y upgrade
+  apt-get -y install libssl0.9.8
 
   # which version of readline to install?
   local readline
