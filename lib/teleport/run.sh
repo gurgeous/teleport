@@ -49,7 +49,10 @@ function install_ruby() {
 
 function install_ruby_187() {
   apt-get -y install irb libopenssl-ruby libreadline-ruby rdoc ri ruby ruby-dev
+  install_rubygems
+}
 
+function install_rubygems() {
   wget http://production.cf.rubygems.org/rubygems/rubygems-$CONFIG_RUBYGEMS.tgz
   tar xfpz rubygems-$CONFIG_RUBYGEMS.tgz
   (cd rubygems-$CONFIG_RUBYGEMS ; ruby setup.rb)
@@ -175,6 +178,14 @@ source ./config
 # do we need to install ruby?
 if ! which ruby > /dev/null ; then
   install_ruby
+fi
+
+# do we need to get rid of the apt rubygems package?
+if dpkg-query -f='${Status}' -W rubygems1.8 2>&1 | grep 'install ok installed' ; then
+  banner "Installing rubygems from source..."
+  apt-get install -y wget
+  apt-get remove -y rubygems1.8
+  install_rubygems
 fi
 
 # run teleport!
