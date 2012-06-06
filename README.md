@@ -6,7 +6,7 @@ Teleport strives to be **idempotent** - you can run it repeatedly without changi
 
 Teleport is great for managing a small number of hosted machines, either dedicated or in the cloud. Due to it's opinionated nature and limited scope you may find that it works better for you than other, more complicated tools.
 
-At the moment Teleport supports **Ubuntu 10.04/10.10/11.04/11.10 with Ruby 1.8.7, 1.9.2, 1.9.3, or [REE](http://www.rubyenterpriseedition.com/)**.
+At the moment Teleport supports **Ubuntu 10.04/10.10/11.04/11.10/12.04 with Ruby 1.8.7, 1.9.2, 1.9.3, or [REE](http://www.rubyenterpriseedition.com/)**.
 
 ## Getting Started
 
