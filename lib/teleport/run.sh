@@ -131,7 +131,11 @@ function install_ruby_193() {
 }
 
 function install_ruby_ree() {
-  local ree="ruby-enterprise_1.8.7-2011.03_${ARCH}_ubuntu10.04.deb"
+  local ree="ruby-enterprise_1.8.7-2012.02_${ARCH}_ubuntu10.04.deb"
+
+  # this is necessary on 12.04 (thanks noeticpenguin)
+  apt-get -y install libssl0.9.8
+  
   wget http://rubyenterpriseedition.googlecode.com/files/$ree
   dpkg -i $ree
 
@@ -152,7 +156,7 @@ fi
 # which version?
 . /etc/lsb-release
 case $DISTRIB_RELEASE in
-  10.* | 11.* ) ;; # nop
+  10.* | 11.* | 12.04 ) ;; # nop
   *)
     banner "warning - Ubuntu $DISTRIB_RELEASE hasn't been tested with Teleport yet"
 esac
