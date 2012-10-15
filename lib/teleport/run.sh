@@ -35,7 +35,7 @@ function install_ruby() {
   else
     readline=libreadline-gplv2-dev
   fi
-  apt-get install -y wget $readline
+  apt-get -y install wget $readline
 
   banner "installing Ruby $CONFIG_RUBY..."
   case $CONFIG_RUBY in
@@ -65,13 +65,7 @@ function install_rubygems() {
 #
 
 function install_ruby_19_requirements() {
-  local ffi
-  if [ "${DISTRIB_RELEASE//[.]/}" -lt "1110" ] ; then
-    ffi=libffi5
-  else
-    ffi=libffi6
-  fi
-  apt-get install -y bison build-essential checkinstall $ffi libssl-dev libyaml-dev zlib1g-dev
+  apt-get -y install bison build-essential checkinstall libffi-dev libssl-dev libyaml-dev zlib1g-dev
 }
 
 function install_ruby_192() {
@@ -105,7 +99,7 @@ function install_ruby_192() {
 }
 
 function install_ruby_193() {
-  local patch=p194
+  local patch=p286
 
   install_ruby_19_requirements
 
@@ -138,7 +132,7 @@ function install_ruby_ree() {
 
   # this is necessary on 12.04 (thanks noeticpenguin)
   apt-get -y install libssl0.9.8
-  
+
   wget http://rubyenterpriseedition.googlecode.com/files/$ree
   dpkg -i $ree
 
@@ -183,8 +177,8 @@ fi
 # do we need to get rid of the apt rubygems package?
 if dpkg-query -f='${Status}' -W rubygems1.8 2>&1 | grep 'install ok installed' ; then
   banner "Installing rubygems from source..."
-  apt-get install -y wget
-  apt-get remove -y rubygems1.8
+  apt-get -y install wget
+  apt-get -y remove rubygems1.8
   install_rubygems
 fi
 
