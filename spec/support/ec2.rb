@@ -4,14 +4,15 @@ require "AWS"
 module Support
   module Ec2
     # these are all us-east-1 64-bit instance
-    AMI_10_04 = "1136fb78"
-    AMI_10_10 = "1933fe70"
-    AMI_11_04 = "71589518"
-    AMI_11_10 = "21f53948"
+    AMI_10_04 = "8fac75e6" # lucid
+    AMI_10_10 = "098f5760" # maverick
+    AMI_11_04 = "35c31a5c" # natty
+    AMI_11_10 = "8baa73e2" # oneiric
+    AMI_12_04 = "3c994355" # precise
     KEYPAIR = "teleport"
     GROUP = "teleport"
 
-    AMI = "ami-#{AMI_10_04}"
+    AMI = "ami-#{AMI_12_04}"
 
     def self.configured?
       ENV["TELEPORT_ACCESS_KEY_ID"] && ENV["TELEPORT_SECRET_ACCESS_KEY"] && ENV["TELEPORT_SSH_KEY"]
@@ -53,14 +54,14 @@ EOF
 
     #
     # this controller class does all the work
-    # 
+    #
 
     class Controller
       def initialize
         raise "not configured" if !Support::Ec2::configured?
         @ec2 = AWS::EC2::Base.new(:access_key_id => ENV["TELEPORT_ACCESS_KEY_ID"], :secret_access_key => ENV["TELEPORT_SECRET_ACCESS_KEY"])
       end
-      
+
       def start
         puts "Running new ec2 instance..."
         # setup security group and allow ssh
@@ -69,7 +70,7 @@ EOF
         rescue AWS::InvalidGroupDuplicate
           # ignore
         end
-        @ec2.authorize_security_group_ingress(:group_name => GROUP, :ip_protocol => "tcp", :from_port => 22, :to_port => 22)        
+        @ec2.authorize_security_group_ingress(:group_name => GROUP, :ip_protocol => "tcp", :from_port => 22, :to_port => 22)
 
         # create the instance
         @ec2.run_instances(:image_id => AMI, :instance_type => "m1.large", :key_name => KEYPAIR, :security_group => GROUP)
