@@ -56,7 +56,9 @@ function install_rubygems() {
   wget http://production.cf.rubygems.org/rubygems/rubygems-$CONFIG_RUBYGEMS.tgz
   tar xfpz rubygems-$CONFIG_RUBYGEMS.tgz
   (cd rubygems-$CONFIG_RUBYGEMS ; ruby setup.rb)
-  ln -s /usr/bin/gem1.8 /usr/bin/gem
+  if [ ! -f /usr/bin/gem ] ; then
+    ln -s /usr/bin/gem1.8 /usr/bin/gem
+  fi
 }
 
 #
@@ -98,7 +100,7 @@ function install_ruby_192() {
                       --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc192
 }
 
-function install_ruby_193() {
+function install_ruby_193_src() {
   local patch=p286
 
   install_ruby_19_requirements
@@ -127,6 +129,18 @@ function install_ruby_193() {
                       --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc193
 }
 
+function install_ruby_193_pkg() {
+  apt-get -y install ruby1.9.3
+}
+
+function install_ruby_193() {
+  if [ "${DISTRIB_RELEASE//[.]/}" -lt "1204" ] ; then
+    install_ruby_193_src
+  else
+    install_ruby_193_pkg
+  fi
+}
+
 function install_ruby_ree() {
   local ree="ruby-enterprise_1.8.7-2012.02_${ARCH}_ubuntu10.04.deb"
 
@@ -153,7 +167,7 @@ fi
 # which version?
 . /etc/lsb-release
 case $DISTRIB_RELEASE in
-  10.* | 11.* | 12.04 ) ;; # nop
+  10.* | 11.* | 12.04 | 12.10 ) ;; # nop
   *)
     banner "warning - Ubuntu $DISTRIB_RELEASE hasn't been tested with Teleport yet"
 esac

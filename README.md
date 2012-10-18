@@ -6,7 +6,7 @@ Teleport strives to be **idempotent** - you can run it repeatedly without changi
 
 Teleport is great for managing a small number of hosted machines, either dedicated or in the cloud. Due to it's opinionated nature and limited scope you may find that it works better for you than other, more complicated tools.
 
-At the moment Teleport supports **Ubuntu 10.04/10.10/11.04/11.10/12.04 with Ruby 1.8.7, 1.9.2, 1.9.3, or [REE](http://www.rubyenterpriseedition.com/)**.
+At the moment Teleport supports **Ubuntu 10.04/10.10/11.04/11.10/12.04/12.10 with Ruby 1.8.7, 1.9.2, 1.9.3, or [REE](http://www.rubyenterpriseedition.com/)**.
 
 ## Getting Started
 
@@ -14,45 +14,45 @@ At the moment Teleport supports **Ubuntu 10.04/10.10/11.04/11.10/12.04 with Ruby
 
     ```
     $ sudo gem install teleport
-    ```    
-    
+    ```
+
 1. Create a `Telfile` config file. Here's a simple example. Note that we actually define two machines, `server_app1` and `server_db1`:
 
     ```
     $ mkdir ~/teleport
     $ cd ~/teleport
     ```
-    
+
     Put this into `~/teleport/Telfile`:
-    
+
     ``` ruby
     user "admin"
     ruby "1.9.3"
-    apt "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen", :key => "7F0CAB10"    
+    apt "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen", :key => "7F0CAB10"
     role :app, :packages => [:memcached]
     role :db, :packages => [:mongodb-10gen]
     server "server_app1", :role => :app
-    server "server_db1", :role => :db    
+    server "server_db1", :role => :db
     packages [:atop, :emacs, :gcc]
     ```
-    
+
 1. You'll want to copy files to your new machines too. Put the files into your teleport directory. For example, maybe you want to automatically have your `.bashrc` and `.emacs` files copied to your new server. You'll want the `memcached` and `mongodb` config files too. Here's what your teleport directory should look like:
 
     ```
     Telfile
     files/home/admin/.bashrc
-    files/home/admin/.emacs            
+    files/home/admin/.emacs
     files_app/etc/default/memcached
     files_app/etc/memcached.conf
     files_db/etc/mongodb.conf
     ```
-    
+
 1. Now run Teleport:
 
     ```
     $ teleport server_app1
     ```
-    
+
 Teleport will ssh to the machine and set it up per your instructions.
 
 ## Full Documentation
@@ -60,4 +60,3 @@ Teleport will ssh to the machine and set it up per your instructions.
 Full docs are in the wiki:
 
 https://github.com/gurgeous/teleport/wiki
-
