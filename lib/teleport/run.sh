@@ -131,6 +131,12 @@ function install_ruby_193_src() {
 
 function install_ruby_193_pkg() {
   apt-get -y install ruby1.9.3
+
+  # Update rubygems to the latest version. The package version uses
+  # the /var/lib gem path, and the updated version switches to
+  # /usr/lib. Better do this now before any gems are installed,
+  # otherwise they'll break later!
+  REALLY_GEM_UPDATE_SYSTEM=1 gem update --system
 }
 
 function install_ruby_193() {
