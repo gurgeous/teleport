@@ -110,6 +110,7 @@ module Teleport
       case f
       when %r{sudoers} then 0440
       when %r{/\.ssh/} then 0400
+      when %r{^/etc/(crontab|cron\.d/)} then 0644
       end
     end
   end
