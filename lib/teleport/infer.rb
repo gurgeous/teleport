@@ -38,7 +38,7 @@ module Teleport
     # official policies, either expressed or implied, of DevStructure.
     #
     # (for MD5SUMS)
-    
+
     MD5SUMS = {
       '/etc/adduser.conf' => ['/usr/share/adduser/adduser.conf'],
       '/etc/apparmor.d/tunables/home.d/ubuntu' =>
@@ -99,19 +99,19 @@ module Teleport
 
     NEW_FILES_WITHIN = %w(cron.d logrotate.d rsyslog.d init)
     CHECKSUM_FILES = %w(bash.bashrc environment inputrc rc.local ssh/ssh_config ssh/sshd_config)
-    
+
     def initialize
       @telfile = []
 
       if fails?("grep -q Ubuntu /etc/lsb-release")
         fatal "Sorry, --infer can only run on an Ubuntu machine."
       end
-      
+
       append "#" * 72
       append "# Telfile inferred from #{`hostname`.strip} at #{Time.now}"
       append "#" * 72
       append
-      
+
       user
       ruby
       apt
@@ -138,14 +138,15 @@ module Teleport
       when /Ruby Enterprise Edition/ then ruby = "REE"
       when /1\.8\.7/ then ruby = "1.8.7"
       when /1\.9\.2/ then ruby = "1.9.2"
-      when /1\.9\.3/ then ruby = "1.9.3"        
+      when /1\.9\.3/ then ruby = "1.9.3"
       end
       append "ruby #{ruby.inspect}" if ruby
     end
 
     def apt
       banner "Calculating apt sources and keys..."
-      list = run_capture_lines("cat /etc/apt/sources.list /etc/apt/sources.list.d/*.list")
+      list = Dir["/etc/apt/sources.list.d/*.list"].sort
+      list = run_capture_lines("cat /etc/apt/sources.list #{list.join(" ")}")
       list = list.grep(/^deb /).sort
       list.each do |line|
         if line =~ /^deb http:\/\/(\S+)\s+(\S+)/
@@ -163,7 +164,7 @@ module Teleport
     end
 
     def packages
-      banner "Looking for interesting packages..."      
+      banner "Looking for interesting packages..."
       @packages = Apt.new.added
       if !@packages.empty?
         append
@@ -175,7 +176,7 @@ module Teleport
     end
 
     def files
-      banner "Looking for interesting files..."            
+      banner "Looking for interesting files..."
       files = []
 
       # read checksums from dpkg status
@@ -205,7 +206,7 @@ module Teleport
         list = list.select { |i| fails?("dpkg -S #{i}") }
         files += list
       end
-      
+
       # now look for changed files from CHECKSUM_FILES
       scan = CHECKSUM_FILES.map { |i| "/etc/#{i}" }
       scan = scan.select { |i| File.file?(i) }
@@ -241,7 +242,7 @@ module Teleport
       include Util
 
       BLACKLIST = /^(linux-|grub-|cloud-init)/
-      
+
       Package = Struct.new(:name, :status, :deps, :base, :parents)
 
       def initialize
@@ -276,7 +277,7 @@ module Teleport
             pkg.parents = pkg.parents.sort.uniq
           end
         end
-        
+
         @packages
       end
 
@@ -289,7 +290,7 @@ module Teleport
       end
 
       def base_packages
-        packages.select { |i| i.base }.map(&:name)    
+        packages.select { |i| i.base }.map(&:name)
       end
 
       def ignored_packages
@@ -342,7 +343,7 @@ module Teleport
 
         # blacklist
         roots = roots.reject { |i| i =~ BLACKLIST }
-        
+
         roots.sort
       end
     end
