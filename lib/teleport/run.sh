@@ -101,7 +101,7 @@ function install_ruby_192() {
 }
 
 function install_ruby_193_src() {
-  local patch=p374
+  local patch=p392
 
   install_ruby_19_requirements
 
