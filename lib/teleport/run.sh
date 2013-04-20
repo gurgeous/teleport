@@ -230,7 +230,7 @@ cd /tmp/_teleported
 source ./config
 
 # do we need to install ruby?
-if ! which ruby > /dev/null ; then
+if ! which ruby > /dev/null || ! [[ `ruby -v` =~ "$CONFIG_RUBY" ]]; then
   install_ruby
 fi
 
