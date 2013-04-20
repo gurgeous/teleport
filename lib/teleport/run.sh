@@ -93,7 +93,7 @@ function install_ruby_200() {
                     --provides="ruby200"
   cd ..
 
-  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby200 600 \
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby200 200 \
                       --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri200 \
                       --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb200 \
                       --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem200 \
@@ -132,7 +132,7 @@ function install_ruby_192() {
                     --provides="ruby"
   cd ..
 
-  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby192 500 \
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby192 192 \
                       --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri192 \
                       --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb192 \
                       --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem192 \
@@ -161,7 +161,7 @@ function install_ruby_193_src() {
                     --provides="ruby"
   cd ..
 
-  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby193 500 \
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby193 193 \
                       --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri193 \
                       --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb193 \
                       --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem193 \
