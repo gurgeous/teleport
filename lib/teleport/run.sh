@@ -127,6 +127,7 @@ function install_ruby_192() {
   checkinstall -D -y \
                     --fstrans=no \
                     --nodoc \
+                    --dpkgflags=--force-overwrite \
                     --pkgname="ruby1.9.2" \
                     --pkgversion="1.9.2-$patch" \
                     --provides="ruby"
@@ -156,6 +157,7 @@ function install_ruby_193_src() {
   make
   checkinstall -D -y \
                     --nodoc \
+                    --dpkgflags=--force-overwrite \
                     --pkgname="ruby1.9.3" \
                     --pkgversion="1.9.3-$patch" \
                     --provides="ruby"
