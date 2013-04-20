@@ -42,6 +42,7 @@ function install_ruby() {
     1.8.7 ) install_ruby_187 ;;
     1.9.2 ) install_ruby_192 ;;
     1.9.3 ) install_ruby_193 ;;
+    2.0.0 ) install_ruby_200 ;;
     REE )   install_ruby_ree ;;
 	* )     fatal "unknown ruby ($CONFIG_RUBY)" ;;
   esac
@@ -59,6 +60,45 @@ function install_rubygems() {
   if [ ! -f /usr/bin/gem ] ; then
     ln -s /usr/bin/gem1.8 /usr/bin/gem
   fi
+}
+
+#
+# thanks to http://blog.statuspage.io/moving-to-ruby-2-on-mac-rvm-and-ubuntu-12-04/
+# for suggestions
+#
+
+function install_ruby_20_requirements() {
+  apt-get -y install build-essential checkinstall libssl-dev libyaml-dev zlib1g-dev
+}
+
+function install_ruby_200() {
+  local patch=p0
+
+  install_ruby_20_requirements
+
+  wget http://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-$patch.tar.gz
+  tar xvzf ruby-2.0.0-$patch.tar.gz
+
+  cd ruby-2.0.0-$patch
+  ./configure --prefix=/usr/local \
+              --program-suffix=200 \
+              --with-ruby-version=2.0.0 \
+              --disable-install-doc
+  make
+  checkinstall -D -y \
+                    --nodoc \
+                    --dpkgflags=--force-overwrite \
+                    --pkgname="ruby2.0.0" \
+                    --pkgversion="2.0.0-$patch" \
+                    --provides="ruby200"
+  cd ..
+
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby200 600 \
+                      --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri200 \
+                      --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb200 \
+                      --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem200 \
+                      --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb200 \
+                      --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc200
 }
 
 #
