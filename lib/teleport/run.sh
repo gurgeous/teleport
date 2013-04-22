@@ -232,8 +232,15 @@ cd /tmp/_teleported
 source ./config
 
 # do we need to install ruby?
-if ! which ruby > /dev/null || ! [[ `ruby -v` =~ "$CONFIG_RUBY" ]]; then
+if ! which ruby > /dev/null; then
   install_ruby
+elif ! [[ `ruby -v` =~ "$CONFIG_RUBY" ]]; then
+  # installed ruby version does not matched the one configured
+  if [[ 'true' = "$CONFIG_UPGRADE" ]] ; then
+    install_ruby
+  else
+    banner "warning - Use the --upgrade argument to upgrade to Ruby $CONFIG_RUBY"
+  fi
 fi
 
 # do we need to get rid of the apt rubygems package?
