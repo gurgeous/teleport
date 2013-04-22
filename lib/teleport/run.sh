@@ -42,6 +42,7 @@ function install_ruby() {
     1.8.7 ) install_ruby_187 ;;
     1.9.2 ) install_ruby_192 ;;
     1.9.3 ) install_ruby_193 ;;
+    2.0.0 ) install_ruby_200 ;;
     REE )   install_ruby_ree ;;
 	* )     fatal "unknown ruby ($CONFIG_RUBY)" ;;
   esac
@@ -59,6 +60,45 @@ function install_rubygems() {
   if [ ! -f /usr/bin/gem ] ; then
     ln -s /usr/bin/gem1.8 /usr/bin/gem
   fi
+}
+
+#
+# thanks to http://blog.statuspage.io/moving-to-ruby-2-on-mac-rvm-and-ubuntu-12-04/
+# for suggestions
+#
+
+function install_ruby_20_requirements() {
+  apt-get -y install build-essential checkinstall libssl-dev libyaml-dev zlib1g-dev
+}
+
+function install_ruby_200() {
+  local patch=p0
+
+  install_ruby_20_requirements
+
+  wget http://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-$patch.tar.gz
+  tar xvzf ruby-2.0.0-$patch.tar.gz
+
+  cd ruby-2.0.0-$patch
+  ./configure --prefix=/usr/local \
+              --program-suffix=200 \
+              --with-ruby-version=2.0.0 \
+              --disable-install-doc
+  make
+  checkinstall -D -y \
+                    --nodoc \
+                    --dpkgflags=--force-overwrite \
+                    --pkgname="ruby2.0.0" \
+                    --pkgversion="2.0.0-$patch" \
+                    --provides="ruby200"
+  cd ..
+
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby200 200 \
+                      --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri200 \
+                      --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb200 \
+                      --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem200 \
+                      --slave   /usr/local/bin/erb  erb  /usr/local/bin/erb200 \
+                      --slave   /usr/local/bin/rdoc rdoc /usr/local/bin/rdoc200
 }
 
 #
@@ -87,12 +127,13 @@ function install_ruby_192() {
   checkinstall -D -y \
                     --fstrans=no \
                     --nodoc \
+                    --dpkgflags=--force-overwrite \
                     --pkgname="ruby1.9.2" \
                     --pkgversion="1.9.2-$patch" \
                     --provides="ruby"
   cd ..
 
-  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby192 500 \
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby192 192 \
                       --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri192 \
                       --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb192 \
                       --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem192 \
@@ -116,12 +157,13 @@ function install_ruby_193_src() {
   make
   checkinstall -D -y \
                     --nodoc \
+                    --dpkgflags=--force-overwrite \
                     --pkgname="ruby1.9.3" \
                     --pkgversion="1.9.3-$patch" \
                     --provides="ruby"
   cd ..
 
-  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby193 500 \
+  update-alternatives --install /usr/local/bin/ruby ruby /usr/local/bin/ruby193 193 \
                       --slave   /usr/local/bin/ri   ri   /usr/local/bin/ri193 \
                       --slave   /usr/local/bin/irb  irb  /usr/local/bin/irb193 \
                       --slave   /usr/local/bin/gem  gem  /usr/local/bin/gem193 \
@@ -190,8 +232,15 @@ cd /tmp/_teleported
 source ./config
 
 # do we need to install ruby?
-if ! which ruby > /dev/null ; then
+if ! which ruby > /dev/null; then
   install_ruby
+elif ! [[ `ruby -v` =~ "$CONFIG_RUBY" ]]; then
+  # installed ruby version does not matched the one configured
+  if [[ 'true' = "$CONFIG_UPGRADE" ]] ; then
+    install_ruby
+  else
+    banner "warning - Use the --upgrade argument to upgrade to Ruby $CONFIG_RUBY"
+  fi
 fi
 
 # do we need to get rid of the apt rubygems package?

@@ -3,7 +3,7 @@ module Teleport
   class Config
     include Constants
 
-    RUBIES = ["1.9.3", "1.9.2", "REE", "1.8.7"]
+    RUBIES = ["2.0.0", "1.9.3", "1.9.2", "REE", "1.8.7"]
 
     attr_accessor :user, :ruby, :ssh_options, :roles, :servers, :apt, :packages, :recipes, :callbacks, :dsl, :ssh_key
 
