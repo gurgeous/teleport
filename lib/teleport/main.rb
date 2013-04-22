@@ -36,6 +36,9 @@ module Teleport
         o.on("-r", "--recipe [RECIPE]", "run a single recipe instead of a full install") do |f|
           @options[:recipe] = f
         end
+        o.on("-u", "--upgrade", "upgrade the existing ruby to the version configured") do |f|
+          @options[:upgrade] = true
+        end
         o.on_tail("-h", "--help", "print this help text") do
           puts opt
           exit(0)
@@ -92,6 +95,7 @@ module Teleport
         f.puts("CONFIG_HOST='#{@options[:host]}'")        
         f.puts("CONFIG_RUBY='#{@config.ruby}'")
         f.puts("CONFIG_RUBYGEMS='#{RUBYGEMS}'")
+        f.puts("CONFIG_UPGRADE='#{@options[:upgrade] || false}'")
         f.puts("CONFIG_RECIPE='#{@options[:recipe]}'") if @options[:recipe]
       end
       # keys
