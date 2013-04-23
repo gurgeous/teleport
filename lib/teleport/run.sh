@@ -68,7 +68,7 @@ function install_rubygems() {
 #
 
 function install_ruby_20_requirements() {
-  apt-get -y install build-essential checkinstall libssl-dev libyaml-dev zlib1g-dev
+  apt-get -y install build-essential checkinstall libffi-dev libncurses5-dev libssl-dev libyaml-dev zlib1g-dev
 }
 
 function install_ruby_200() {
