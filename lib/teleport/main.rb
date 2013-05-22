@@ -4,13 +4,13 @@ module Teleport
   # The main class for the teleport command line.
   class Main
     include Constants
-    include Util    
+    include Util
 
     TAR = "#{DIR}.tgz"
-    
+
     def initialize(cmd = :teleport)
       cli(cmd)
-      
+
       case @options[:cmd]
       when :teleport
         $stderr = $stdout
@@ -22,7 +22,7 @@ module Teleport
         infer
       end
     end
-    
+
     # Parse ARGV.
     def cli(cmd)
       @options = { }
@@ -38,6 +38,10 @@ module Teleport
         end
         o.on("-u", "--upgrade", "upgrade the existing ruby to the version configured") do |f|
           @options[:upgrade] = true
+        end
+        o.on("-v", "--version", "print the teleport version number") do |f|
+          puts "teleport #{VERSION}"
+          exit(0)
         end
         o.on_tail("-h", "--help", "print this help text") do
           puts opt
@@ -80,7 +84,7 @@ module Teleport
     def assemble_tgz
       banner "Assembling #{TAR}..."
       rm_and_mkdir(DIR)
-      
+
       # gem
       run("cp", ["-r", "#{File.dirname(__FILE__)}/../../lib", GEM])
       # data
@@ -92,7 +96,7 @@ module Teleport
       copy.sort.each { |i| run("cp", ["-r", i, DATA]) }
       # config.sh
       File.open("#{DIR}/config", "w") do |f|
-        f.puts("CONFIG_HOST='#{@options[:host]}'")        
+        f.puts("CONFIG_HOST='#{@options[:host]}'")
         f.puts("CONFIG_RUBY='#{@config.ruby}'")
         f.puts("CONFIG_RUBYGEMS='#{RUBYGEMS}'")
         f.puts("CONFIG_UPGRADE='#{@options[:upgrade] || false}'")
@@ -108,7 +112,7 @@ module Teleport
       if File.exists?(ssh_key)
         run("cp", [ssh_key, "#{DIR}/#{PUBKEY}"])
       end
-      
+
       Dir.chdir(File.dirname(DIR)) do
         run("tar", ["cfpz", TAR, File.basename(DIR)])
       end
@@ -120,7 +124,7 @@ module Teleport
         banner "scp #{TAR} to #{@options[:host]}:#{TAR}..."
 
         args = []
-        args += @config.ssh_options if @config.ssh_options        
+        args += @config.ssh_options if @config.ssh_options
         args << TAR
         args << "#{@options[:host]}:#{TAR}"
         run("scp", args)
