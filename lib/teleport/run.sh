@@ -72,7 +72,7 @@ function install_ruby_20_requirements() {
 }
 
 function install_ruby_200() {
-  local patch=p0
+  local patch=p195
 
   install_ruby_20_requirements
 
@@ -142,7 +142,7 @@ function install_ruby_192() {
 }
 
 function install_ruby_193_src() {
-  local patch=p392
+  local patch=p429
 
   install_ruby_19_requirements
 
