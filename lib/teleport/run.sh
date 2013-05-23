@@ -8,6 +8,27 @@
 # bail on errors
 set -eu
 
+#
+# Some package history:
+#
+# Ruby 1.8.7
+#
+# 10.04 (lucid):
+#   libopenssl-ruby libreadline-ruby irb rdoc ri ruby ruby-dev
+# 11.04 (maverick):
+#   libopenssl-ruby/libreadline-ruby/irb now provided by libruby
+#   rdoc now provided by ruby
+#   we can still use the same package list, though. harmless.
+# 13.04 (raring):
+#   the default ruby package is now 1.9.1 (1.9.3)
+#   we now use ruby1.8, which includes everything
+#
+#
+# Ruby 1.9.3
+#
+# 12.04 (precise):
+#   ruby1.9.3 package is now available
+
 
 
 #
@@ -49,7 +70,11 @@ function install_ruby() {
 }
 
 function install_ruby_187() {
-  apt-get -y install irb libopenssl-ruby libreadline-ruby rdoc ri ruby ruby-dev
+  if [ "${DISTRIB_RELEASE//[.]/}" -lt "1304" ] ; then
+    apt-get -y install irb libopenssl-ruby libreadline-ruby rdoc ri ruby ruby-dev
+  else
+    apt-get -y install ruby1.8
+  fi
   install_rubygems
 }
 
@@ -215,7 +240,7 @@ fi
 # which version?
 . /etc/lsb-release
 case $DISTRIB_RELEASE in
-  10.* | 11.* | 12.04 | 12.10 ) ;; # nop
+  10.* | 11.* | 12.* | 13.04 ) ;; # nop
   *)
     banner "warning - Ubuntu $DISTRIB_RELEASE hasn't been tested with Teleport yet"
 esac
