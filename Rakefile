@@ -1,32 +1,10 @@
-require "bundler"
-require "bundler/setup"
-
-require "rake"
+require "bundler/gem_helper"
+require "rake/testtask"
 require "rdoc/task"
 require "rspec"
 require "rspec/core/rake_task"
 
-$LOAD_PATH << File.expand_path("../lib", __FILE__)
-require "teleport/version"
-
-#
-# gem
-#
-
-task :gem => :build
-task :build do
-  system "gem build --quiet teleport.gemspec"
-end
-
-task :install => :build do
-  system "sudo gem install --quiet teleport-#{Teleport::VERSION}.gem"
-end
-
-task :release => :build do
-  system "git tag -a #{Teleport::VERSION} -m 'Tagging #{Teleport::VERSION}'"
-  system "git push --tags"
-  system "gem push teleport-#{Teleport::VERSION}.gem"
-end
+Bundler::GemHelper.install_tasks
 
 #
 # rspec
