@@ -17,7 +17,7 @@ module Teleport
     class RunError < StandardError ; end
 
     extend self
-    
+
     RESET   = "\e[0m"
     RED     = "\e[1;37;41m"
     GREEN   = "\e[1;37;42m"
@@ -34,7 +34,7 @@ module Teleport
     def run_verbose!
       @run_verbose = true
     end
-    
+
     # Run a command, raise an error upon failure. Output goes to
     # $stdout/$stderr.
     def run(command, args = nil)
@@ -101,7 +101,7 @@ module Teleport
       $? == 0
     end
 
-    # Run a command, return true if it fails.    
+    # Run a command, return true if it fails.
     def fails?(command)
       !succeeds?(command)
     end
@@ -158,8 +158,8 @@ module Teleport
     # owner of dst.
     def cp(src, dst, owner = nil, mode = nil)
       FileUtils.cp_r(src, dst, :preserve => true, :verbose => verbose?)
-      if owner && !File.symlink?(dst)      
-        chown(dst, owner) 
+      if owner && !File.symlink?(dst)
+        chown(dst, owner)
       end
       if mode
         chmod(dst, mode)
@@ -204,14 +204,19 @@ module Teleport
       @uids[user] ||= Etc.getpwnam(user).uid
       uid = @uids[user]
       if File.stat(file).uid != uid
-        run "chown #{user}:#{user} '#{file}'"        
+        run "chown #{user}:#{user} '#{file}'"
       end
     end
 
     # Chmod file to a new mode.
     def chmod(file, mode)
       if File.stat(file).mode != mode
-        FileUtils.chmod(mode, file, :verbose => verbose?)      
+        begin
+          FileUtils.chmod(mode, file, :verbose => verbose?)
+        rescue NoMethodError
+          # workaround https://bugs.ruby-lang.org/issues/8547
+          FileUtils.chmod(mode, file)
+        end
       end
     end
 
@@ -251,7 +256,7 @@ module Teleport
 
     # A nice printout in green.
     def banner(s, color = GREEN)
-      s = "#{s} ".ljust(72, " ")      
+      s = "#{s} ".ljust(72, " ")
       $stderr.write "#{color}[#{Time.new.strftime('%H:%M:%S')}] #{s}#{RESET}\n"
       $stderr.flush
     end
@@ -274,7 +279,7 @@ module Teleport
 
     # Returns true if the pkg is installed.
     def package_is_installed?(pkg)
-      succeeds?("dpkg-query -f='${Status}' -W #{pkg} 2>&1 | grep 'install ok installed'")    
+      succeeds?("dpkg-query -f='${Status}' -W #{pkg} 2>&1 | grep 'install ok installed'")
     end
 
     # Install pkg if necessary.
